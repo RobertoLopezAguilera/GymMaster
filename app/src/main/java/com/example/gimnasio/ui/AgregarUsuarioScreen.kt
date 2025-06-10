@@ -34,6 +34,7 @@ import com.example.gimnasio.data.model.Usuario
 import com.example.gimnasio.viewmodel.UsuarioViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,12 +65,14 @@ fun AgregarUsuarioScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (nombre.isNotBlank() && genero.isNotBlank()) {
+                    val hoy = LocalDate.now()
                     val usuario = Usuario(
                         nombre = nombre,
                         genero = genero,
                         edad = edad.toIntOrNull() ?: 0,
                         peso = peso.toDoubleOrNull() ?: 0.0,
-                        experiencia = experiencia
+                        experiencia = experiencia,
+                        fechaInscripcion = hoy.toString()
                     )
                     viewModel.insertarUsuario(usuario)
                     navController.popBackStack()

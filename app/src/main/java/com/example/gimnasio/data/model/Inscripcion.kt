@@ -18,7 +18,6 @@ data class Inscripcion(
     val idUsuario: Int,
     val idMembresia: Int,
     val fechaPago: String,
-    val fechaInscripcion: String,
     val fechaVencimiento: String,
     val pagado: Boolean
 )

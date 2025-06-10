@@ -38,6 +38,7 @@ import com.example.gimnasio.data.model.Usuario
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.gimnasio.viewmodel.UsuarioDetalleViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,13 +76,15 @@ fun EditarUsuarioScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (nombre.isNotBlank() && genero.isNotBlank() && experiencia.isNotBlank()) {
+                    val hoy = LocalDate.now()
                     val updatedUsuario = Usuario(
                         id = usuarioId,
                         nombre = nombre,
                         genero = genero,
                         edad = edad.toIntOrNull() ?: 0,
                         peso = peso.toDoubleOrNull() ?: 0.0,
-                        experiencia = experiencia
+                        experiencia = experiencia,
+                        fechaInscripcion = hoy.toString()
                     )
                     viewModel.actualizarUsuario(updatedUsuario)
                     Toast.makeText(context, "Usuario actualizado", Toast.LENGTH_SHORT).show()

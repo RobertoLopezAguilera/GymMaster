@@ -29,4 +29,7 @@ interface UsuarioDao {
 
     @Query("DELETE FROM usuarios WHERE id = :id")
     suspend fun eliminarPorId(id: Int)
+
+    @Query("SELECT * FROM usuarios WHERE fechaInscripcion = :fecha")
+    fun obtenerInscripcionesPorFechaInscripcion(fecha: String): Flow<List<Usuario>>
 }

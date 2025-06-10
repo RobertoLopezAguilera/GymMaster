@@ -56,7 +56,6 @@ fun AsignarMembresiaScreen(
                             val inscripcion = Inscripcion(
                                 idUsuario = usuarioId,
                                 idMembresia = membresia.id,
-                                fechaInscripcion = hoy.toString(),
                                 fechaPago = hoy.toString(),
                                 fechaVencimiento = vencimiento.toString(),
                                 pagado = true

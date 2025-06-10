@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    //id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -66,7 +68,7 @@ dependencies {
     // (Opcional) Paging con Room
     implementation("androidx.room:room-paging:2.6.1")
 
-    // ✅ Soporte para fechas modernas (java.time.*)
+    // Soporte para fechas modernas (java.time.*)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // Material3
@@ -77,5 +79,12 @@ dependencies {
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
+    //FireBase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth:19.3.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.firebase:firebase-firestore")
 
 }

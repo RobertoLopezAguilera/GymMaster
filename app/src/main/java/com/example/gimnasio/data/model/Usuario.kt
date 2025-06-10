@@ -10,5 +10,7 @@ data class Usuario(
     val genero: String,
     val edad: Int,
     val peso: Double,
-    val experiencia: String // Principiante, Intermedio, Avanzado, Mixto
+    val experiencia: String, // Principiante, Intermedio, Avanzado, Mixto
+
+    val fechaInscripcion: String // sirve para crear historial
 )

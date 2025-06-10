@@ -21,9 +21,6 @@ interface InscripcionDao {
     @Query("SELECT * FROM inscripciones WHERE fechaVencimiento = :fecha")
     fun obtenerInscripcionesPorFechaVencimiento(fecha: String): Flow<List<Inscripcion>>
 
-    @Query("SELECT * FROM inscripciones WHERE fechaInscripcion = :fecha")
-    fun obtenerInscripcionesPorFechaInscripcion(fecha: String): Flow<List<Inscripcion>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(inscripcion: Inscripcion)
 

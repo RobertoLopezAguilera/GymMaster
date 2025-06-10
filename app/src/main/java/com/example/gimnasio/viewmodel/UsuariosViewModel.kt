@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -52,15 +53,16 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     private fun insertarUsuariosDePrueba() {
         viewModelScope.launch {
             if (usuarioDao.getCount() == 0) {
+                val hoy = LocalDate.now()
                 val clientesPrueba = listOf(
-                    Usuario(nombre = "Carlos Ramírez", genero = "Masculino", edad = 28, peso = 75.0, experiencia = "Intermedio"),
-                    Usuario(nombre = "Ana López", genero = "Femenino", edad = 24, peso = 60.5, experiencia = "Principiante"),
-                    Usuario(nombre = "Luis Gómez", genero = "Masculino", edad = 32, peso = 82.3, experiencia = "Avanzado"),
-                    Usuario(nombre = "María García", genero = "Femenino", edad = 29, peso = 58.0, experiencia = "Mixto"),
-                    Usuario(nombre = "Jorge Martínez", genero = "Masculino", edad = 35, peso = 90.0, experiencia = "Avanzado"),
-                    Usuario(nombre = "Sofía Pérez", genero = "Femenino", edad = 22, peso = 55.4, experiencia = "Principiante"),
-                    Usuario(nombre = "Diego Torres", genero = "Masculino", edad = 27, peso = 78.8, experiencia = "Intermedio"),
-                    Usuario(nombre = "Lucía Fernández", genero = "Femenino", edad = 30, peso = 62.1, experiencia = "Mixto")
+                    Usuario(nombre = "Carlos Ramírez", genero = "Masculino", edad = 28, peso = 75.0, experiencia = "Intermedio", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Ana López", genero = "Femenino", edad = 24, peso = 60.5, experiencia = "Principiante", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Luis Gómez", genero = "Masculino", edad = 32, peso = 82.3, experiencia = "Avanzado", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "María García", genero = "Femenino", edad = 29, peso = 58.0, experiencia = "Mixto", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Jorge Martínez", genero = "Masculino", edad = 35, peso = 90.0, experiencia = "Avanzado", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Sofía Pérez", genero = "Femenino", edad = 22, peso = 55.4, experiencia = "Principiante", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Diego Torres", genero = "Masculino", edad = 27, peso = 78.8, experiencia = "Intermedio", fechaInscripcion = hoy.toString()),
+                    Usuario(nombre = "Lucía Fernández", genero = "Femenino", edad = 30, peso = 62.1, experiencia = "Mixto", fechaInscripcion = hoy.toString())
                 )
                 clientesPrueba.forEach { usuarioDao.insert(it) }
             }

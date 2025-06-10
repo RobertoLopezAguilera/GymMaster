@@ -1,75 +1,26 @@
 package com.example.gimnasio.ui
 
-import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import com.example.gimnasio.data.model.Inscripcion
-import com.example.gimnasio.data.model.Membresia
-import com.example.gimnasio.viewmodel.InscripcionViewModel
-import com.example.gimnasio.viewmodel.MembresiasViewModel
-import com.example.gimnasio.viewmodel.UsuarioDetalleViewModel
-import com.example.gimnasio.viewmodel.UsuarioViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
 import com.example.gimnasio.R
-import com.example.gimnasio.data.model.Usuario
 import com.example.gimnasio.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,7 +60,7 @@ fun MainScreen() {
                 modifier = Modifier.width(280.dp),
                 drawerContainerColor = GymDarkBlue
             ) {
-                // Header del drawer
+                // Header del drawer barra lateral
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -321,146 +272,10 @@ fun MainScreen() {
                         EditarMembresiaScreen(membresiaId = it, navController = navController)
                     }
                 }
-                composable("agregar_membresia") {
+                composable("perfil") {
                     PerfilScreen(navController = navController)
                 }
             }
         }
     }
 }
-
-@Composable
-fun FabMenu(
-    modifier: Modifier = Modifier,
-    onEditarClick: () -> Unit,
-    onAsignarMembresiaClick: () -> Unit,
-    onPagarClick: () -> Unit,
-    onEliminarClick: () -> Unit
-) {
-    var isMenuOpen by remember { mutableStateOf(false) }
-    val transition = updateTransition(isMenuOpen, label = "fabMenuTransition")
-
-    // Animaciones para los botones
-    val button1Position by transition.animateDp(
-        transitionSpec = { spring(stiffness = Spring.StiffnessLow) },
-        label = "button1"
-    ) { if (it) 0.dp else (-56).dp }
-
-    val button2Position by transition.animateDp(
-        transitionSpec = { spring(stiffness = Spring.StiffnessLow) },
-        label = "button2"
-    ) { if (it) 0.dp else (-112).dp }
-
-    val button3Position by transition.animateDp(
-        transitionSpec = { spring(stiffness = Spring.StiffnessLow) },
-        label = "button3"
-    ) { if (it) 0.dp else (-168).dp }
-
-    val button4Position by transition.animateDp(
-        transitionSpec = { spring(stiffness = Spring.StiffnessLow) },
-        label = "button4"
-    ) { if (it) 0.dp else (-224).dp }
-
-    val rotation by transition.animateFloat(
-        transitionSpec = { tween(durationMillis = 200) },
-        label = "rotation"
-    ) { if (it) 45f else 0f }
-
-    Box(
-        modifier = modifier
-    ) {
-        // Botón Editar
-        ExtendedFloatingActionButton(
-            onClick = {
-                isMenuOpen = false
-                onEditarClick()
-            },
-            modifier = Modifier
-                .offset(y = button1Position)
-                .alpha(if (isMenuOpen) 1f else 0f),
-            containerColor = GymMediumBlue,
-            contentColor = GymWhite,
-            text = { Text("Editar") },
-            icon = {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Editar"
-                )
-            }
-        )
-
-        // Botón Asignar Membresía
-        ExtendedFloatingActionButton(
-            onClick = {
-                isMenuOpen = false
-                onAsignarMembresiaClick()
-            },
-            modifier = Modifier
-                .offset(y = button2Position)
-                .alpha(if (isMenuOpen) 1f else 0f),
-            containerColor = GymMediumBlue,
-            contentColor = GymWhite,
-            text = { Text("Membresía") },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_calendario),
-                    contentDescription = "Asignar Membresía"
-                )
-            }
-        )
-
-        // Botón Pagar
-        ExtendedFloatingActionButton(
-            onClick = {
-                isMenuOpen = false
-                onPagarClick()
-            },
-            modifier = Modifier
-                .offset(y = button3Position)
-                .alpha(if (isMenuOpen) 1f else 0f),
-            containerColor = Color(0xFF4AC250),
-            contentColor = GymWhite,
-            text = { Text("Pagar") },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_payments),
-                    contentDescription = "Pagar"
-                )
-            }
-        )
-
-        // Botón Eliminar
-        ExtendedFloatingActionButton(
-            onClick = {
-                isMenuOpen = false
-                onEliminarClick()
-            },
-            modifier = Modifier
-                .offset(y = button4Position)
-                .alpha(if (isMenuOpen) 1f else 0f),
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = GymWhite,
-            text = { Text("Eliminar") },
-            icon = {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Eliminar"
-                )
-            }
-        )
-
-        // Botón principal
-        FloatingActionButton(
-            onClick = { isMenuOpen = !isMenuOpen },
-            containerColor = GymBrightRed,
-            contentColor = GymWhite
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Más opciones",
-                modifier = Modifier.rotate(rotation)
-            )
-        }
-    }
-}
-

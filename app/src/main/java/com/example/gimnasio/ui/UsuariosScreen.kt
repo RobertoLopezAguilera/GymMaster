@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,15 +72,7 @@ fun UsuariosScreen(
             onQueryChange = { query = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-        )
-
-        // Contador de usuarios
-        Text(
-            text = "${usuariosFiltrados.size} ${if (usuariosFiltrados.size == 1) "usuario" else "usuarios"} encontrados",
-            style = MaterialTheme.typography.bodySmall,
-            color = GymDarkGray,
-            modifier = Modifier.padding(horizontal = 16.dp)
+                .padding(4.dp)
         )
 
         // Lista de usuarios mejorada
@@ -93,9 +84,9 @@ fun UsuariosScreen(
                 UsuarioCard(
                     usuario = usuario,
                     onClick = {
-                        navController.navigate("usuario_detalle/${index}")
+                        navController.navigate("usuario_detalle/${usuario.id}")
                     },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
         }
@@ -111,7 +102,7 @@ private fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        label = { Text("Buscar por nombre, apellido o email") },
+        label = { Text("Buscar Usuario...") },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
@@ -165,13 +156,13 @@ fun UsuarioCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Avatar del usuario con iniciales
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(40.dp)
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(GymMediumBlue, GymDarkBlue)
@@ -189,7 +180,7 @@ fun UsuarioCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
