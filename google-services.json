@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "316124608499",
+    "project_id": "calabozogym-5df9a",
+    "storage_bucket": "calabozogym-5df9a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316124608499:android:c57dd70356f8f140544486",
+        "android_client_info": {
+          "package_name": "com.example.gimnasio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316124608499-gk3q1objlokng5k34q4r147ljii2109p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gimnasio",
+            "certificate_hash": "04f2454fd13982e88474a429b6445431e7bcabb0"
+          }
+        },
+        {
+          "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcByPOrjGoqCGGzUkn5ur5puBSXXVzgRg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
