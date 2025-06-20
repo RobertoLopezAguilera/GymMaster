@@ -7,6 +7,8 @@ import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -14,6 +16,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
+import kotlinx.coroutines.flow.flowOf
+
 
 class InscripcionViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -65,31 +69,64 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
             }
     }
 
-    fun obtenerInscripcionesPorFecha(
-        fecha: LocalDate,
-        fechaTipo: (Inscripcion) -> String
-    ): Flow<List<Inscripcion>> {
-        return inscripcionDao.getAll()
-            .map { lista ->
-                lista.filter {
-                    val dateLong = stringToMillis(fechaTipo(it))
-                    val inscDate = Instant.ofEpochMilli(dateLong).atZone(ZoneId.systemDefault()).toLocalDate()
-                    inscDate == fecha
-                }
+    fun inscripcionesPorTipo(tipo: String): Flow<Map<LocalDate, Int>> {
+        return when (tipo) {
+            "pago" -> {
+                inscripcionDao.getAll()
+                    .map { it.map { ins -> ins.fechaPago } }
+                    .map { fechas -> fechas.distinct() }
+                    .flatMapLatest { fechas ->
+                        if (fechas.isEmpty()) flowOf(emptyMap())
+                        else {
+                            combine(
+                                fechas.map { fecha ->
+                                    inscripcionDao.obtenerInscripcionesPorFechaPago(fecha).map { lista ->
+                                        LocalDate.parse(fecha) to lista.size
+                                    }
+                                }
+                            ) { resultados -> resultados.toMap() }
+                        }
+                    }
             }
+
+            "vencimiento" -> {
+                inscripcionDao.getAll()
+                    .map { it.map { ins -> ins.fechaVencimiento } }
+                    .map { fechas -> fechas.distinct() }
+                    .flatMapLatest { fechas ->
+                        if (fechas.isEmpty()) flowOf(emptyMap())
+                        else {
+                            combine(
+                                fechas.map { fecha ->
+                                    inscripcionDao.obtenerInscripcionesPorFechaVencimiento(fecha).map { lista ->
+                                        LocalDate.parse(fecha) to lista.size
+                                    }
+                                }
+                            ) { resultados -> resultados.toMap() }
+                        }
+                    }
+            }
+
+            else -> {
+                usuarioDao.getUsuarios()
+                    .map { usuarios ->
+                        usuarios.groupingBy {
+                            val fechaLong = stringToMillis(it.fechaInscripcion ?: "2000-01-01")
+                            Instant.ofEpochMilli(fechaLong).atZone(ZoneId.systemDefault()).toLocalDate()
+                        }.eachCount()
+                    }
+            }
+        }
     }
 
     fun obtenerInscripcionesPorFechaPago(fecha: LocalDate): Flow<List<Inscripcion>> {
         return inscripcionDao.obtenerInscripcionesPorFechaPago(fecha.toString())
     }
 
-    fun obtenerInscripcionesPorFechaInscripcion(fecha: LocalDate): Flow<List<Usuario>> {
-        return usuarioDao.obtenerInscripcionesPorFechaInscripcion(fecha.toString())
-    }
+//    fun obtenerInscripcionesPorFechaInscripcion(fecha: LocalDate): Flow<List<Usuario>> {
+//        return usuarioDao.obtenerInscripcionesPorFechaInscripcion(fecha.toString())
+//    }
     fun obtenerInscripcionesPorFechaVencimiento(fecha: LocalDate): Flow<List<Inscripcion>> {
-        return inscripcionDao.obtenerInscripcionesPorFechaVencimiento(fecha.toString())
+    return inscripcionDao.obtenerInscripcionesPorFechaVencimiento(fecha.toString())
     }
-
-
-
 }

@@ -19,7 +19,7 @@ import kotlinx.coroutines.delay
 fun VideoSplashScreen(onFinish: () -> Unit) {
     val context = LocalContext.current
     val videoUri = remember {
-        "android.resource://${context.packageName}/${R.raw.calabozo_trim}"
+        "android.resource://${context.packageName}/${R.raw.calabozo}"
     }
 
     val exoPlayer = remember {
@@ -44,7 +44,7 @@ fun VideoSplashScreen(onFinish: () -> Unit) {
     )
 
     LaunchedEffect(Unit) {
-        delay(1000) // Dura 1 segundo el video
+        delay(3000) // Dura 1 segundo el video
         exoPlayer.release()
         onFinish()
     }

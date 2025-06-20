@@ -22,7 +22,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // Flow observable para la lista de usuarios
-    val usuarios: StateFlow<List<Usuario>> = usuarioDao.getAll()
+    val usuarios: StateFlow<List<Usuario>> = usuarioDao.getUsuarios()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

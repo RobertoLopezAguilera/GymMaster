@@ -78,11 +78,8 @@ fun CalendarioScreen(
         return
     }
 
-    val inscripcionesFlow = when (tipoVisualizacion) {
-        "pago" -> viewModel.inscripcionesPor { it.fechaPago }
-        "vencimiento" -> viewModel.inscripcionesPor { it.fechaVencimiento }
-        else -> viewModel.inscripcionesPor { it.fechaPago }
-    }
+    val inscripcionesFlow = viewModel.inscripcionesPorTipo(tipoVisualizacion)
+
 
     val inscripcionesPorDia by inscripcionesFlow.collectAsState(initial = emptyMap())
 

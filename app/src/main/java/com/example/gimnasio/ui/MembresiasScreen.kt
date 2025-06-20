@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.ui.theme.*
@@ -266,28 +267,27 @@ fun MembresiaCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Precio",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = GymDarkGray
-                        )
+                Text(
+                    text = "Precio",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = GymDarkBlue,
+                        fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = "$${membresia.costo} MXN",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = GymDarkBlue,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+                )
+
+                Chip(
+                    text = "$ ${membresia.costo}",
+                    backgroundColor = GymSecondary.copy(alpha = 0.1f),
+                    textColor = GymSecondary,
+                    icon = painterResource(id = R.drawable.ic_payments)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun Chip(
+internal fun Chip(
     text: String,
     backgroundColor: Color,
     textColor: Color,
@@ -316,7 +316,8 @@ private fun Chip(
                 text = text,
                 style = MaterialTheme.typography.labelMedium.copy(
                     color = textColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp // 👈 Aquí defines el tamaño de letra
                 )
             )
         }

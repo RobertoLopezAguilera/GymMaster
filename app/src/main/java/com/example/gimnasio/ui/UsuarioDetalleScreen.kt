@@ -1,5 +1,6 @@
 package com.example.gimnasio.ui
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDp
@@ -13,7 +14,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,12 +63,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.example.gimnasio.R
+import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.ui.theme.*
 import com.example.gimnasio.viewmodel.UsuarioDetalleViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun UsuarioDetalleScreen(
@@ -81,6 +86,7 @@ fun UsuarioDetalleScreen(
     val membresiaFlow = inscripcion?.idMembresia?.let { viewModel.getMembresia(it) }
     val membresiaState = membresiaFlow?.collectAsState(initial = null)
     val membresia = membresiaState?.value
+    val context = LocalContext.current
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -177,7 +183,7 @@ fun UsuarioDetalleScreen(
                             )
 
                             InfoRow(
-                                icon = painterResource(id = R.drawable.ic_pesas),
+                                icon = painterResource(id = R.drawable.ic_weight),
                                 label = "Peso",
                                 value = "${user.peso ?: "?"} kg"
                             )
@@ -188,7 +194,7 @@ fun UsuarioDetalleScreen(
                             )
 
                             InfoRow(
-                                icon = painterResource(id = R.drawable.ic_person),
+                                icon = painterResource(id = R.drawable.ic_gender),
                                 label = "Género",
                                 value = user.genero ?: "No especificado"
                             )
@@ -210,6 +216,18 @@ fun UsuarioDetalleScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Sección de inscripción
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val hoy = LocalDate.now()
+
+                // Calcular si está pagado basado en la fecha
+                val estaPagado = inscripcion?.fechaVencimiento?.let { fechaVenc ->
+                    val fechaVencimiento = LocalDate.parse(fechaVenc, formatter)
+                    !fechaVencimiento.isBefore(hoy)
+                } ?: false
+
+                // Cambiar los colores basados en el estado calculado
+                val borderColor = if (estaPagado) GymSecondary else GymBrightRed
+
                 Text(
                     text = "Estado de Inscripción",
                     style = MaterialTheme.typography.titleLarge.copy(
@@ -218,8 +236,6 @@ fun UsuarioDetalleScreen(
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-
-                val borderColor = if (inscripcion?.pagado == true) GymSecondary else GymBrightRed
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -234,7 +250,7 @@ fun UsuarioDetalleScreen(
                                 icon = painterResource(id = R.drawable.ic_check_green),
                                 label = "Vencimiento",
                                 value = it.fechaVencimiento ?: "No especificada",
-                                valueColor = if (it.pagado) GymDarkBlue else GymBrightRed
+                                valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
                             )
 
                             Divider(
@@ -246,7 +262,7 @@ fun UsuarioDetalleScreen(
                                 icon = painterResource(id = R.drawable.ic_payments),
                                 label = "Último pago",
                                 value = it.fechaPago ?: "No registrado",
-                                valueColor = if (it.pagado) GymDarkBlue else GymBrightRed
+                                valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
                             )
 
                             Divider(
@@ -265,13 +281,19 @@ fun UsuarioDetalleScreen(
                                         color = GymDarkGray
                                     )
                                 )
+                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                                val hoy = LocalDate.now()
+
+                                val fechaVencimiento = LocalDate.parse(it.fechaVencimiento, formatter)
+
+                                val estaActiva = !fechaVencimiento.isBefore(hoy) // activa si vence hoy o después
 
                                 Chip(
-                                    text = if (it.pagado) "ACTIVO" else "VENCIDO",
-                                    backgroundColor = if (it.pagado) GymSecondary.copy(alpha = 0.2f)
+                                    text = if (estaActiva) "ACTIVO" else "VENCIDO",
+                                    backgroundColor = if (estaActiva) GymSecondary.copy(alpha = 0.2f)
                                     else GymBrightRed.copy(alpha = 0.2f),
-                                    textColor = if (it.pagado) GymSecondary else GymBrightRed,
-                                    icon = if (it.pagado) Icons.Default.Check else Icons.Default.Close
+                                    textColor = if (estaActiva) GymSecondary else GymBrightRed,
+                                    icon = if (estaActiva) Icons.Default.Check else Icons.Default.Close
                                 )
                             }
                         } ?: Text(
@@ -344,15 +366,132 @@ fun UsuarioDetalleScreen(
             }
         }
 
-        // FABs flotantes
+        var showChangeMembershipDialog by remember { mutableStateOf(false) }
+
+        // Diálogo para confirmar cambio de membresía
+        if (showChangeMembershipDialog) {
+            AlertDialog(
+                onDismissRequest = { showChangeMembershipDialog = false },
+                title = {
+                    Text("Membresía activa",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = GymDarkBlue,
+                            fontWeight = FontWeight.Bold
+                        ))
+                },
+                text = {
+                    Text("El usuario ya tiene una membresía activa. " +
+                            "¿Estás seguro que deseas cambiar de membresía?",
+                        style = MaterialTheme.typography.bodyMedium)
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showChangeMembershipDialog = false
+                            navController.navigate("asignar_membresia/$usuarioId")
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = GymBrightRed
+                        )
+                    ) {
+                        Text("CAMBIAR", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showChangeMembershipDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = GymMediumBlue
+                        )
+                    ) {
+                        Text("CANCELAR")
+                    }
+                },
+                containerColor = GymWhite,
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
+
         FabMenu(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp),
             onEditarClick = { navController.navigate("editar_usuario/$usuarioId") },
-            onAsignarMembresiaClick = { navController.navigate("asignar_membresia/$usuarioId") },
+            onAsignarMembresiaClick = {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val hoy = LocalDate.now()
+
+                inscripcion?.let { insc ->
+                    val fechaVencimiento = insc.fechaVencimiento?.let {
+                        try {
+                            LocalDate.parse(it, formatter)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+
+                    if (fechaVencimiento != null && !fechaVencimiento.isBefore(hoy)) {
+                        // Mostrar diálogo de confirmación
+                        showChangeMembershipDialog = true
+                    } else {
+                        // No hay membresía activa o está vencida
+                        navController.navigate("asignar_membresia/$usuarioId")
+                    }
+                } ?: run {
+                    // No hay inscripción
+                    navController.navigate("asignar_membresia/$usuarioId")
+                }
+            },
+            onPagarClick = {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val hoy = LocalDate.now()
+
+                if (membresia == null) {
+                    Toast.makeText(context, "Error: No hay membresía asignada", Toast.LENGTH_SHORT).show()
+                    return@FabMenu
+                }
+
+                inscripcion?.let { insc ->
+                    val fechaVencimiento = LocalDate.parse(insc.fechaVencimiento, formatter)
+                    val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimiento)
+
+                    if (diasRestantes > 7) {
+                        Toast.makeText(
+                            context,
+                            "No puedes renovar. Faltan $diasRestantes para vencimiento",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@FabMenu
+                    }
+                }
+
+                val fechaActual = hoy.toString()
+                val duracionDias = membresia.duracionDias ?: 30
+                var nuevaFechaVencimiento = hoy.plusDays(duracionDias.toLong()).toString()
+
+                inscripcion?.let { insc ->
+                    val fechaVencimientoActual = LocalDate.parse(insc.fechaVencimiento, formatter)
+                    if (!fechaVencimientoActual.isBefore(hoy)) {
+                        val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimientoActual)
+                        val nuevaFecha = hoy.plusDays(duracionDias.toLong() + diasRestantes)
+                        nuevaFechaVencimiento = nuevaFecha.toString()
+                    }
+                }
+
+                viewModel.insertarInscripcion(
+                    Inscripcion(
+                        idUsuario = usuarioId,
+                        idMembresia = membresia.id,
+                        fechaPago = fechaActual,
+                        fechaVencimiento = nuevaFechaVencimiento,
+                        pagado = true // Opcional
+                    )
+                )
+                Toast.makeText(context, "Pago registrado exitosamente", Toast.LENGTH_SHORT).show()
+            },
             onEliminarClick = { showDialog = true }
         )
+
     }
 
     // Diálogo de confirmación
@@ -406,7 +545,7 @@ fun UsuarioDetalleScreen(
 }
 
 @Composable
-private fun InfoRow(
+internal fun InfoRow(
     icon: Painter,
     label: String,
     value: String,
@@ -484,7 +623,7 @@ fun FabMenu(
     modifier: Modifier = Modifier,
     onEditarClick: () -> Unit,
     onAsignarMembresiaClick: () -> Unit,
-//    onPagarClick: () -> Unit,
+    onPagarClick: () -> Unit,
     onEliminarClick: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -564,31 +703,31 @@ fun FabMenu(
             )
         }
 
-        // Botón Pagar
-//        AnimatedVisibility(
-//            visible = isMenuOpen,
-//            enter = fadeIn() + slideInVertically { it },
-//            exit = fadeOut() + slideOutVertically { it }
-//        ) {
-//            ExtendedFloatingActionButton(
-//                onClick = {
-//                    isMenuOpen = false
-//                    onPagarClick()
-//                },
-//                modifier = Modifier
-//                    .height(48.dp)
-//                    .alpha(alpha),
-//                containerColor = Color(0xFF4AC250),
-//                contentColor = GymWhite,
-//                text = { Text("Pagar") },
-//                icon = {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.ic_payments),
-//                        contentDescription = "Pagar"
-//                    )
-//                }
-//            )
-//        }
+        //Botón Pagar
+        AnimatedVisibility(
+            visible = isMenuOpen,
+            enter = fadeIn() + slideInVertically { it },
+            exit = fadeOut() + slideOutVertically { it }
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    isMenuOpen = false
+                    onPagarClick()
+                },
+                modifier = Modifier
+                    .height(48.dp)
+                    .alpha(alpha),
+                containerColor = Color(0xFF4AC250),
+                contentColor = GymWhite,
+                text = { Text("Pagar") },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_payments),
+                        contentDescription = "Pagar"
+                    )
+                }
+            )
+        }
 
         // Botón Eliminar
         AnimatedVisibility(
@@ -635,4 +774,8 @@ fun FabMenu(
             )
         }
     }
+}
+
+fun onPagarClick(){
+
 }

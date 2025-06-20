@@ -42,6 +42,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import androidx.compose.runtime.getValue
 import com.example.gimnasio.MainActivity
+import com.example.gimnasio.MainScreenActivity
 import com.example.gimnasio.R
 
 class LoginActivity : ComponentActivity() {
@@ -51,9 +52,6 @@ class LoginActivity : ComponentActivity() {
     private val RC_SIGN_IN = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Cambia el tema ANTES de setContent() quita SplashScreen
-        setTheme(R.style.Theme_MyApplication)
-
         super.onCreate(savedInstanceState)
 
         firebaseAuth = FirebaseAuth.getInstance()
@@ -63,7 +61,7 @@ class LoginActivity : ComponentActivity() {
         val currentUser = firebaseAuth.currentUser
 
         if (currentUser != null && !userEmail.isNullOrEmpty()) {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, MainScreenActivity::class.java))
             finish()
             return
         }
@@ -104,7 +102,7 @@ class LoginActivity : ComponentActivity() {
                                 if (!email.isNullOrEmpty()) {
                                     val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
                                     sharedPreferences.edit().putString("USER_EMAIL", email).apply()
-                                    startActivity(Intent(this, MainActivity::class.java))
+                                    startActivity(Intent(this, MainScreenActivity::class.java))
                                     finish()
                                 }
                             } else {

@@ -1,13 +1,14 @@
 package com.example.gimnasio.data.dao
 
 import androidx.room.*
+import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDao {
     @Query("SELECT * FROM usuarios")
-    fun getAll(): kotlinx.coroutines.flow.Flow<List<Usuario>>
+    fun getUsuarios(): Flow<List<Usuario>>
 
     @Query("SELECT COUNT(*) FROM usuarios")
     suspend fun getCount(): Int
@@ -32,4 +33,5 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion = :fecha")
     fun obtenerInscripcionesPorFechaInscripcion(fecha: String): Flow<List<Usuario>>
+
 }
