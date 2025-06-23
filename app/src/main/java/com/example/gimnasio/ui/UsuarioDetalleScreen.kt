@@ -229,7 +229,7 @@ fun UsuarioDetalleScreen(
                 val borderColor = if (estaPagado) GymSecondary else GymBrightRed
 
                 Text(
-                    text = "Estado de Inscripción",
+                    text = "Suscripción",
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = GymDarkBlue,
                         fontWeight = FontWeight.SemiBold
@@ -297,7 +297,7 @@ fun UsuarioDetalleScreen(
                                 )
                             }
                         } ?: Text(
-                            "Sin inscripción activa",
+                            "Sin suscripción activa",
                             style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkGray),
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
@@ -309,7 +309,7 @@ fun UsuarioDetalleScreen(
 
                 // Sección de membresía
                 Text(
-                    text = "Membresía",
+                    text = "Tipo de Membresía",
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = GymDarkBlue,
                         fontWeight = FontWeight.SemiBold

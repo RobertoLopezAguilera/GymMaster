@@ -17,11 +17,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import com.example.gimnasio.R
 import com.example.gimnasio.ui.theme.*
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -282,6 +286,31 @@ fun MainScreen() {
                     EstadisticasInscripcionesScreen(navController = navController)
                 }
 
+                // Agrega esta nueva ruta para InscripcionesDiaScreen
+                composable(
+                    "inscripciones/{fecha}/{tipoVisualizacion}",
+                    arguments = listOf(
+                        navArgument("fecha") { type = NavType.StringType },
+                        navArgument("tipoVisualizacion") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val fechaStr = backStackEntry.arguments?.getString("fecha") ?: ""
+                    val tipo = backStackEntry.arguments?.getString("tipoVisualizacion") ?: ""
+                    val fecha = try {
+                        LocalDate.parse(fechaStr)
+                    } catch (e: Exception) {
+                        LocalDate.now()
+                    }
+
+                    InscripcionesDiaScreen(
+                        fecha = fecha,
+                        tipoVisualizacion = tipo,
+                        viewModel = viewModel(),
+                        usuarioViewModel = viewModel(),
+                        navController = navController,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

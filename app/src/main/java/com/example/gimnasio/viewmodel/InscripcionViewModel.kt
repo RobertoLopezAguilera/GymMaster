@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
+import com.example.gimnasio.ui.FilterType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -123,6 +124,14 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun getUsuariosPorFiltro(filtro: String, filterType: FilterType): Flow<List<Usuario>> {
+        return when (filterType) {
+            FilterType.YEAR -> usuarioDao.getUsuariosPorAño(filtro)
+            FilterType.MONTH -> usuarioDao.getUsuariosPorMes(filtro)
+        }
+    }
+
+
     fun obtenerInscripcionesPorFechaPago(fecha: LocalDate): Flow<List<Inscripcion>> {
         return inscripcionDao.obtenerInscripcionesPorFechaPago(fecha.toString())
     }
@@ -134,4 +143,8 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
     fun obtenerInscripcionesPorFechaVencimiento(fecha: LocalDate): Flow<List<Inscripcion>> {
     return inscripcionDao.obtenerInscripcionesPorFechaVencimiento(fecha.toString())
     }
+
+//    fun obtenerInscripcionesPorMes(fecha: LocalDate): Flow<List<Usuario>>{
+//
+//    }
 }

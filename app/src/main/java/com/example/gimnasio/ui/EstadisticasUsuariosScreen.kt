@@ -42,6 +42,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
+import java.time.LocalDate
 
 @Composable
 fun EstadisticasUsuariosScreen(
@@ -151,7 +156,22 @@ fun EstadisticasUsuariosScreen(
         BarChartCard(
             data = datosGrafica,
             barColor = GymMediumBlue,
-            modifier = Modifier.height(300.dp)
+            modifier = Modifier.height(300.dp),
+            onBarClick = { etiqueta ->
+                val fechaSeleccionada = when (filtroTipo) {
+                    FilterType.MONTH -> {
+                        // Si el filtro es por mes, la etiqueta es el día
+                        LocalDate.parse("$filtroAño-$filtroMes-${etiqueta.padStart(2, '0')}")
+                    }
+                    FilterType.YEAR -> {
+                        // Si el filtro es por año, la etiqueta es el nombre del mes
+                        val mesNum = meses.indexOfFirst { it.startsWith(etiqueta.take(3)) } + 1
+                        LocalDate.of(filtroAño.toInt(), mesNum, 1)
+                    }
+                }
+
+                navController.navigate("inscripciones/${fechaSeleccionada}/mes")
+            }
         )
     }
 }
@@ -160,7 +180,8 @@ fun EstadisticasUsuariosScreen(
 fun BarChartCard(
     data: List<Pair<String, Float>>,
     barColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBarClick: (String) -> Unit = {} // Cambiado para recibir la etiqueta
 ) {
     if (data.isEmpty()) {
         Box(
@@ -178,9 +199,9 @@ fun BarChartCard(
     val context = LocalContext.current
     val barChart = remember { BarChart(context) }
 
-    // Actualiza los datos cuando cambian
+    val labels = data.map { it.first }
+
     LaunchedEffect(data) {
-        val labels = data.map { it.first }
         val entries = data.mapIndexed { index, (_, value) ->
             BarEntry(index.toFloat(), value)
         }
@@ -190,6 +211,9 @@ fun BarChartCard(
             valueTextColor = Color.Black.toArgb()
             valueTextSize = 12f
             setDrawValues(true)
+            valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String = value.toInt().toString()
+            }
         }
 
         barChart.apply {
@@ -214,6 +238,21 @@ fun BarChartCard(
 
             axisRight.isEnabled = false
             legend.isEnabled = false
+            description.isEnabled = false
+
+            // 👉 Captura de clics mejorada
+            setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                override fun onValueSelected(e: Entry?, h: Highlight?) {
+                    if (e is BarEntry) {
+                        val index = e.x.toInt()
+                        if (index in labels.indices) {
+                            onBarClick(labels[index])
+                        }
+                    }
+                }
+
+                override fun onNothingSelected() {}
+            })
 
             notifyDataSetChanged()
             invalidate()
@@ -233,7 +272,6 @@ fun BarChartCard(
         )
     }
 }
-
 
 @Composable
 fun DropdownMenuFiltroTipo(
