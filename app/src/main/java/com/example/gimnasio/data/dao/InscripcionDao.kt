@@ -40,4 +40,5 @@ interface InscripcionDao {
 
     @Query("DELETE FROM inscripciones WHERE idUsuario = :usuarioId")
     suspend fun eliminarPorUsuario(usuarioId: Int)
+
 }

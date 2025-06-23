@@ -92,6 +92,17 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Graficas
+    implementation("com.github.tehras:charts:0.2.4-alpha")
 
 
+//    implementation("androidx.compose.ui:ui:1.5.0")
+//    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
+//    implementation("androidx.compose.foundation:foundation:1.5.0")
+//    implementation("androidx.compose.runtime:runtime-livedata:1.5.0")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

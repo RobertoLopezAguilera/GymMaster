@@ -26,7 +26,11 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun insertarInscripcion(inscripcion: Inscripcion) {
         viewModelScope.launch {
-            inscripcionDao.insert(inscripcion)
+            if (inscripcion.id == 0) {
+                inscripcionDao.insert(inscripcion)
+            } else {
+                inscripcionDao.update(inscripcion)
+            }
         }
     }
 
@@ -123,9 +127,10 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         return inscripcionDao.obtenerInscripcionesPorFechaPago(fecha.toString())
     }
 
-//    fun obtenerInscripcionesPorFechaInscripcion(fecha: LocalDate): Flow<List<Usuario>> {
-//        return usuarioDao.obtenerInscripcionesPorFechaInscripcion(fecha.toString())
-//    }
+    fun obtenerUltimaInscripcion(usuarioId: Int): Flow<Inscripcion?> {
+        return inscripcionDao.getByUsuarioId(usuarioId)
+    }
+
     fun obtenerInscripcionesPorFechaVencimiento(fecha: LocalDate): Flow<List<Inscripcion>> {
     return inscripcionDao.obtenerInscripcionesPorFechaVencimiento(fecha.toString())
     }

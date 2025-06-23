@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsuarioDao {
-    @Query("SELECT * FROM usuarios")
+    @Query("SELECT * FROM usuarios ORDER BY nombre ASC")
     fun getUsuarios(): Flow<List<Usuario>>
 
     @Query("SELECT COUNT(*) FROM usuarios")
@@ -34,4 +34,13 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion = :fecha")
     fun obtenerInscripcionesPorFechaInscripcion(fecha: String): Flow<List<Usuario>>
 
+    // Distribución por género (para gráfico de pastel)
+    @Query("SELECT * FROM usuarios WHERE genero = :genero")
+    fun getDistribucionGenero(genero: String): Flow<List<Usuario>>
+
+    @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :mes || '%'")
+    fun getUsuariosPorMes(mes: String): Flow<List<Usuario>>
+
+    @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :año || '%'")
+    fun getUsuariosPorAño(año: String): Flow<List<Usuario>>
 }

@@ -275,6 +275,13 @@ fun MainScreen() {
                 composable("perfil") {
                     PerfilScreen(navController = navController)
                 }
+                composable("estadisticas_usuarios") {
+                    EstadisticasUsuariosScreen(navController = navController)
+                }
+                composable("estadisticas_inscripciones") {
+                    EstadisticasInscripcionesScreen(navController = navController)
+                }
+
             }
         }
     }

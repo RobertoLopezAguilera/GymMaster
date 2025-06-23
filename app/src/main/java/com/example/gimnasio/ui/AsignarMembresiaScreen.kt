@@ -1,5 +1,6 @@
 package com.example.gimnasio.ui
 
+import android.widget.Toast
 import com.example.gimnasio.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -12,14 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,22 +28,30 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.ui.theme.*
+import com.example.gimnasio.viewmodel.InscripcionViewModel
 import com.example.gimnasio.viewmodel.MembresiasViewModel
-import com.example.gimnasio.viewmodel.UsuarioDetalleViewModel
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun AsignarMembresiaScreen(
     usuarioId: Int,
     navController: NavController,
     viewModel: MembresiasViewModel = viewModel(),
-    usuarioDetalleViewModel: UsuarioDetalleViewModel = viewModel()
+    inscripcionViewModel: InscripcionViewModel = viewModel()
 ) {
     val membresias by viewModel.membresias.collectAsState()
+    val context = LocalContext.current
+    val hoy = LocalDate.now()
+
+    val ultimaInscripcion by inscripcionViewModel
+        .obtenerUltimaInscripcion(usuarioId)
+        .collectAsState(initial = null)
 
     Column(
         modifier = Modifier
@@ -53,7 +59,6 @@ fun AsignarMembresiaScreen(
             .background(GymLightGray)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        // Título mejorado
         Text(
             text = "Selecciona una membresía",
             style = MaterialTheme.typography.headlineSmall.copy(
@@ -63,7 +68,6 @@ fun AsignarMembresiaScreen(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        // Lista de membresías
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -73,31 +77,73 @@ fun AsignarMembresiaScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            val hoy = LocalDate.now()
-                            val vencimiento = hoy.plusDays(membresia.duracionDias.toLong())
+                            val inscripcionActual = ultimaInscripcion
+                            val vencimientoActual = inscripcionActual?.let {
+                                LocalDate.parse(it.fechaVencimiento)
+                            }
 
-                            val inscripcion = Inscripcion(
-                                idUsuario = usuarioId,
-                                idMembresia = membresia.id,
-                                fechaPago = hoy.toString(),
-                                fechaVencimiento = vencimiento.toString(),
-                                pagado = true
-                            )
+                            if (vencimientoActual != null) {
+                                when {
+                                    // Caso 1: Ya vencida
+                                    vencimientoActual.isBefore(hoy) -> {
+                                        val nuevaFechaVencimiento = hoy.plusDays(membresia.duracionDias.toLong())
+                                        val nuevaInscripcion = Inscripcion(
+                                            idUsuario = usuarioId,
+                                            idMembresia = membresia.id,
+                                            fechaPago = hoy.toString(),
+                                            fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                            pagado = true
+                                        )
+                                        inscripcionViewModel.insertarInscripcion(nuevaInscripcion)
+                                        Toast.makeText(context, "Nueva inscripción registrada", Toast.LENGTH_SHORT).show()
+                                    }
 
-                            usuarioDetalleViewModel.insertarInscripcion(inscripcion)
+                                    // Caso 2: Activa pero quedan 7 días o menos
+                                    ChronoUnit.DAYS.between(hoy, vencimientoActual) <= 7 -> {
+                                        val diasRestantes = ChronoUnit.DAYS.between(hoy, vencimientoActual).coerceAtLeast(0)
+                                        val nuevaDuracion = membresia.duracionDias + diasRestantes.toInt()
+                                        val nuevaFechaVencimiento = hoy.plusDays(nuevaDuracion.toLong())
+
+                                        val inscripcionActualizada = Inscripcion(
+                                            id = inscripcionActual!!.id, // ✅ ya está seguro que no es null aquí
+                                            idUsuario = usuarioId,
+                                            idMembresia = membresia.id,
+                                            fechaPago = hoy.toString(),
+                                            fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                            pagado = true
+                                        )
+
+                                        inscripcionViewModel.insertarInscripcion(inscripcionActualizada)
+                                        Toast.makeText(context, "Inscripción actualizada y extendida", Toast.LENGTH_SHORT).show()
+                                    }
+
+                                    // Caso 3: Inscripción activa con más de 7 días — no hacer nada
+                                    else -> {
+                                        Toast.makeText(context, "La inscripción actual aún está activa", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                // Caso 4: No hay inscripción previa
+                                val nuevaFechaVencimiento = hoy.plusDays(membresia.duracionDias.toLong())
+                                val nuevaInscripcion = Inscripcion(
+                                    idUsuario = usuarioId,
+                                    idMembresia = membresia.id,
+                                    fechaPago = hoy.toString(),
+                                    fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                    pagado = true
+                                )
+                                inscripcionViewModel.insertarInscripcion(nuevaInscripcion)
+                                Toast.makeText(context, "Primera inscripción registrada", Toast.LENGTH_SHORT).show()
+                            }
+
                             navController.popBackStack()
                         },
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = GymWhite
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = GymWhite),
                     elevation = CardDefaults.cardElevation(4.dp),
                     border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.1f))
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        // Tipo de membresía
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = membresia.tipo ?: "Membresía",
                             style = MaterialTheme.typography.titleLarge.copy(
@@ -108,8 +154,7 @@ fun AsignarMembresiaScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Fila con Precio a la izquierda y Duración a la derecha
-                        Row (
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 4.dp),
@@ -139,3 +184,4 @@ fun AsignarMembresiaScreen(
         }
     }
 }
+

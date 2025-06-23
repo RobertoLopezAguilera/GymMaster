@@ -7,7 +7,12 @@ import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.data.model.Usuario
+import com.example.gimnasio.ui.FilterType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(application) {
@@ -16,10 +21,9 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
     private val inscripcionDao = db.inscripcionDao()
     private val membresiaDao = db.membresiaDao()
 
+    // Funciones existentes
     fun getUsuario(usuarioId: Int): Flow<Usuario?> = usuarioDao.getUsuarioPorId(usuarioId)
-
     fun getInscripcion(usuarioId: Int): Flow<Inscripcion?> = inscripcionDao.getByUsuarioId(usuarioId)
-
     fun getMembresia(membresiaId: Int): Flow<Membresia?> = membresiaDao.getById(membresiaId)
 
     fun insertarInscripcion(inscripcion: Inscripcion) {
@@ -30,12 +34,8 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
 
     fun eliminarUsuarioConTodo(usuarioId: Int, onFinish: () -> Unit) {
         viewModelScope.launch {
-            // Elimina la inscripción del usuario si existe
             inscripcionDao.eliminarPorUsuario(usuarioId)
-
-            // Luego elimina al usuario
             usuarioDao.eliminarPorId(usuarioId)
-
             onFinish()
         }
     }
@@ -46,5 +46,22 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
+    // Nuevas funciones para estadísticas
 
+    fun getUsuariosPorMes(mes: String): Flow<List<Usuario>> {
+        return usuarioDao.getUsuariosPorMes(mes)
+    }
+
+    // Usuarios por AÑO (ej: "2025")
+    fun getUsuariosPorAño(año: String): Flow<List<Usuario>> {
+        return usuarioDao.getUsuariosPorAño(año)
+    }
+
+
+    fun getUsuariosPorFiltro(filtro: String, filterType: FilterType): Flow<List<Usuario>> {
+        return when (filterType) {
+            FilterType.YEAR -> usuarioDao.getUsuariosPorAño(filtro)
+            FilterType.MONTH -> usuarioDao.getUsuariosPorMes(filtro)
+        }
+    }
 }
