@@ -59,12 +59,29 @@ fun MainScreen() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = false, // ✅ Deshabilita deslizamiento
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier.width(280.dp),
                 drawerContainerColor = GymDarkBlue
             ) {
-                // Header del drawer barra lateral
+                // 🔴 BOTÓN DE CERRAR DRAWER (parte superior)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = "Cerrar Drawer",
+                            tint = GymWhite
+                        )
+                    }
+                }
+
+                // 🔴 HEADER
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -89,17 +106,16 @@ fun MainScreen() {
                     }
                 }
 
-                // Opciones del menú
+                // 🔴 ITEM: Ajustes
                 NavigationDrawerItem(
                     label = {
-                        Text("Ajustes",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = GymWhite
-                            )
-                        )
+                        Text("Ajustes", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
-                    onClick = { /* Lógica */ },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        // Lógica de navegación o ajustes
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_settings),
@@ -111,16 +127,17 @@ fun MainScreen() {
                         unselectedContainerColor = Color.Transparent
                     )
                 )
+
+                // 🔴 ITEM: Cerrar sesión
                 NavigationDrawerItem(
                     label = {
-                        Text("Cerrar sesión",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = GymWhite
-                            )
-                        )
+                        Text("Cerrar sesión", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
-                    onClick = { /* Lógica */ },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        // Lógica de cerrar sesión
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logout),

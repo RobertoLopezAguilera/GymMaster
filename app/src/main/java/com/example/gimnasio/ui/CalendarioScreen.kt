@@ -247,7 +247,7 @@ fun CalendarioScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            listOf("L", "M", "X", "J", "V", "S", "D").forEach { dia ->
+            listOf("D", "L", "M", "X", "J", "V", "S").forEach { dia ->
                 Text(
                     text = dia,
                     style = MaterialTheme.typography.bodyMedium.copy(

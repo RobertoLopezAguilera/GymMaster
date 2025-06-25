@@ -235,6 +235,25 @@ fun PerfilScreen(navController: NavHostController) {
 
                 Divider(color = GymWhite, thickness = 1.dp)
 
+                //Lista de inscripciones
+                ListItem(
+                    headlineContent = { Text("Lista de Inscripciones") },
+                    supportingContent = { Text("Subscripcion de todos los usuarios") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_membresia),
+                            contentDescription = "Inscripciones",
+                            tint = GymDarkBlue
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = GymWhite),
+                    modifier = Modifier.clickable {
+
+                    }
+                )
+
+                Divider(color = GymWhite, thickness = 1.dp)
+
                 // Cerrar sesión
                 ListItem(
                     headlineContent = {

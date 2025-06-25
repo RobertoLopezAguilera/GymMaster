@@ -28,10 +28,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
-import com.example.gimnasio.ui.theme.GymLightGray
+import com.example.gimnasio.ui.theme.*
 import com.example.gimnasio.viewmodel.InscripcionViewModel
 import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
@@ -80,7 +81,8 @@ fun InscripcionesDiaScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = "Volver"
+                    contentDescription = "Volver",
+                    tint = Color.Black
                 )
             }
 
@@ -90,7 +92,8 @@ fun InscripcionesDiaScreen(
                     "Inscripciones de ${fecha.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${fecha.year}"
                 } else {
                     "Inscripciones del ${fecha.dayOfMonth}/${fecha.monthValue}/${fecha.year}"
-                }
+                },
+                color = Color.Black
             )
         }
 

@@ -670,7 +670,7 @@ fun FabMenu(
                 text = { Text("Editar") },
                 icon = {
                     Icon(
-                        Icons.Default.Edit,
+                        painter = painterResource(id = R.drawable.ic_person_edit),
                         contentDescription = "Editar"
                     )
                 }

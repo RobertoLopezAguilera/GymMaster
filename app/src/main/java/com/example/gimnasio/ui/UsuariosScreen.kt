@@ -206,14 +206,21 @@ fun UsuarioCard(
                     InfoChip(
                         icon = painterResource(id = R.drawable.ic_person),
                         text = "${usuario.edad ?: "?"} años",
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+
+                    // Genero
+                    InfoChip(
+                        icon = painterResource(id = R.drawable.ic_gender),
+                        text = usuario.genero ?: "Genero. no especificada",
+                        modifier = Modifier.padding(end = 4.dp)
                     )
 
                     // Experiencia
                     InfoChip(
                         icon = painterResource(id = R.drawable.ic_pesas),
                         text = usuario.experiencia ?: "Exp. no especificada",
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 4.dp)
                     )
 
                 }

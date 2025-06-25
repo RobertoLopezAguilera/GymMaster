@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
+import com.example.gimnasio.ui.Experiencia
 import com.example.gimnasio.ui.FilterType
+import com.example.gimnasio.ui.Genero
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -124,13 +126,25 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun getUsuariosPorFiltro(filtro: String, filterType: FilterType): Flow<List<Usuario>> {
+    fun getUsuariosPorFiltro(mesAnio: String, filterType: FilterType): Flow<List<Usuario>> {
         return when (filterType) {
-            FilterType.YEAR -> usuarioDao.getUsuariosPorAño(filtro)
-            FilterType.MONTH -> usuarioDao.getUsuariosPorMes(filtro)
+            FilterType.YEAR -> usuarioDao.getUsuariosPorAño(mesAnio)
+            FilterType.MONTH -> usuarioDao.getUsuariosPorMes(mesAnio)
         }
     }
 
+    // Métodos específicos para cada caso
+    fun getUsuariosPorMes(mesAnio: String): Flow<List<Usuario>> {
+        return usuarioDao.getUsuariosPorMes(mesAnio)
+    }
+
+    fun getUsuariosPorMesYGenero(mesAnio: String, genero: String): Flow<List<Usuario>> {
+        return usuarioDao.getUsuariosPorMesGenero(mesAnio, genero)
+    }
+
+    fun getUsuariosPorMesYExperiencia(mesAnio: String, experiencia: String): Flow<List<Usuario>> {
+        return usuarioDao.getUsuariosPorMesExperiencia(mesAnio, experiencia.toString())
+    }
 
     fun obtenerInscripcionesPorFechaPago(fecha: LocalDate): Flow<List<Inscripcion>> {
         return inscripcionDao.obtenerInscripcionesPorFechaPago(fecha.toString())

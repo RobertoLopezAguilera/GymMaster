@@ -41,6 +41,12 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :mes || '%'")
     fun getUsuariosPorMes(mes: String): Flow<List<Usuario>>
 
+    @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :mes || '%' AND genero = :genero")
+    fun getUsuariosPorMesGenero(mes: String, genero: String): Flow<List<Usuario>>
+
+    @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :mes || '%' AND experiencia = :experiencia")
+    fun getUsuariosPorMesExperiencia(mes: String, experiencia: String): Flow<List<Usuario>>
+
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :año || '%'")
     fun getUsuariosPorAño(año: String): Flow<List<Usuario>>
 }
