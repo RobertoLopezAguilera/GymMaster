@@ -32,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -87,7 +86,6 @@ fun UsuarioDetalleScreen(
     val membresiaState = membresiaFlow?.collectAsState(initial = null)
     val membresia = membresiaState?.value
     val context = LocalContext.current
-
     var showDialog by remember { mutableStateOf(false) }
 
     Box(
@@ -141,7 +139,7 @@ fun UsuarioDetalleScreen(
                                 )
                             )
                             Text(
-                                text = "Miembro desde: ${user.fechaInscripcion ?: "Fecha desconocida"}",
+                                text = "Miembro desde: ${formatearFecha(user.fechaInscripcion) ?: "Fecha desconocida"}",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = GymDarkGray
                                 )
@@ -249,7 +247,7 @@ fun UsuarioDetalleScreen(
                             InfoRow(
                                 icon = painterResource(id = R.drawable.ic_check_green),
                                 label = "Vencimiento",
-                                value = it.fechaVencimiento ?: "No especificada",
+                                value = formatearFecha(it.fechaVencimiento),
                                 valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
                             )
 
@@ -261,7 +259,7 @@ fun UsuarioDetalleScreen(
                             InfoRow(
                                 icon = painterResource(id = R.drawable.ic_payments),
                                 label = "Último pago",
-                                value = it.fechaPago ?: "No registrado",
+                                value = formatearFecha(it.fechaPago),
                                 valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
                             )
 
@@ -447,7 +445,7 @@ fun UsuarioDetalleScreen(
                 val hoy = LocalDate.now()
 
                 if (membresia == null) {
-                    Toast.makeText(context, "Error: No hay membresía asignada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "No hay membresía asignada", Toast.LENGTH_SHORT).show()
                     return@FabMenu
                 }
 
@@ -455,10 +453,11 @@ fun UsuarioDetalleScreen(
                     val fechaVencimiento = LocalDate.parse(insc.fechaVencimiento, formatter)
                     val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimiento)
 
+                    // Si faltan más de 7 días para vencer
                     if (diasRestantes > 7) {
                         Toast.makeText(
                             context,
-                            "No puedes renovar. Faltan $diasRestantes para vencimiento",
+                            "No puedes renovar. Faltan $diasRestantes días para vencimiento",
                             Toast.LENGTH_LONG
                         ).show()
                         return@FabMenu
@@ -467,15 +466,22 @@ fun UsuarioDetalleScreen(
 
                 val fechaActual = hoy.toString()
                 val duracionDias = membresia.duracionDias ?: 30
-                var nuevaFechaVencimiento = hoy.plusDays(duracionDias.toLong()).toString()
 
-                inscripcion?.let { insc ->
-                    val fechaVencimientoActual = LocalDate.parse(insc.fechaVencimiento, formatter)
-                    if (!fechaVencimientoActual.isBefore(hoy)) {
-                        val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimientoActual)
-                        val nuevaFecha = hoy.plusDays(duracionDias.toLong() + diasRestantes)
-                        nuevaFechaVencimiento = nuevaFecha.toString()
+                // Nueva lógica para calcular fecha de vencimiento
+                val nuevaFechaVencimiento = if (inscripcion != null) {
+                    val fechaVencimientoActual = LocalDate.parse(inscripcion!!.fechaVencimiento, formatter)
+                    val diasAtraso = ChronoUnit.DAYS.between(fechaVencimientoActual, hoy)
+
+                    if (diasAtraso > 0 && diasAtraso <= 7) {
+                        // Si está en período de gracia (vencido hace menos de 7 días)
+                        fechaVencimientoActual.plusDays(duracionDias.toLong()).toString()
+                    } else {
+                        // Si no está vencido o está vencido hace más de 7 días
+                        hoy.plusDays(duracionDias.toLong()).toString()
                     }
+                } else {
+                    // Si no hay inscripción previa
+                    hoy.plusDays(duracionDias.toLong()).toString()
                 }
 
                 viewModel.insertarInscripcion(
@@ -484,11 +490,12 @@ fun UsuarioDetalleScreen(
                         idMembresia = membresia.id,
                         fechaPago = fechaActual,
                         fechaVencimiento = nuevaFechaVencimiento,
-                        pagado = true // Opcional
+                        pagado = true
                     )
                 )
                 Toast.makeText(context, "Pago registrado exitosamente", Toast.LENGTH_SHORT).show()
             },
+            onHistorialClick = { navController.navigate("historial_usuario/$usuarioId") },
             onEliminarClick = { showDialog = true }
         )
 
@@ -624,6 +631,7 @@ fun FabMenu(
     onEditarClick: () -> Unit,
     onAsignarMembresiaClick: () -> Unit,
     onPagarClick: () -> Unit,
+    onHistorialClick: () -> Unit,
     onEliminarClick: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -724,6 +732,32 @@ fun FabMenu(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_payments),
                         contentDescription = "Pagar"
+                    )
+                }
+            )
+        }
+
+        // BotonhHistorial membresias
+        AnimatedVisibility(
+            visible = isMenuOpen,
+            enter = fadeIn() + slideInVertically { it },
+            exit = fadeOut() + slideOutVertically { it }
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    isMenuOpen = false
+                    onHistorialClick()
+                },
+                modifier = Modifier
+                    .height(48.dp)
+                    .alpha(alpha),
+                containerColor = Purple40,
+                contentColor = GymWhite,
+                text = { Text("Historial") },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_membresia),
+                        contentDescription = "Historial"
                     )
                 }
             )

@@ -284,6 +284,10 @@ fun MainScreen() {
                     val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: return@composable
                     AsignarMembresiaScreen(usuarioId = usuarioId, navController = navController)
                 }
+                composable("historial_usuario/{usuarioId}") { backStackEntry ->
+                    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: return@composable
+                    HistorialUsuarioScreen(usuarioId = usuarioId, navController = navController)
+                }
                 composable("agregar_membresia") {
                     AgregarMembresiaScreen(navController = navController)
                 }
