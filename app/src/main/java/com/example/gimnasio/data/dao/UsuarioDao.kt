@@ -13,11 +13,18 @@ interface UsuarioDao {
     @Query("SELECT COUNT(*) FROM usuarios")
     suspend fun getCount(): Int
 
+    @Query("SELECT * FROM usuarios WHERE id = :usuarioId LIMIT 1")
+    suspend fun getByIdDirecto(usuarioId: Int): Usuario?
+
+
     @Query("SELECT * FROM usuarios")
     fun getUsuariosFlow(): Flow<List<Usuario>>
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
     fun getUsuarioPorId(id: Int): Flow<Usuario?>
+
+    @Query("SELECT * FROM usuarios")
+    fun getAllUsuarios(): Flow<List<Usuario>>
 
     @Insert
     suspend fun insert(usuario: Usuario)

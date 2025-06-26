@@ -8,12 +8,14 @@ import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.data.model.Usuario
 import com.example.gimnasio.ui.FilterType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(application) {
     private val db = AppDatabase.getDatabase(application)
@@ -25,6 +27,11 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
     fun getUsuario(usuarioId: Int): Flow<Usuario?> = usuarioDao.getUsuarioPorId(usuarioId)
     fun getInscripcion(usuarioId: Int): Flow<Inscripcion?> = inscripcionDao.getByUsuarioId(usuarioId)
     fun getMembresia(membresiaId: Int): Flow<Membresia?> = membresiaDao.getById(membresiaId)
+
+    // En tu ViewModel
+    val allUsuarios: Flow<Map<Int, Usuario>> = usuarioDao.getUsuariosFlow().map { usuarios ->
+        usuarios.associateBy { it.id }
+    }
 
     fun insertarInscripcion(inscripcion: Inscripcion) {
         viewModelScope.launch {
@@ -47,6 +54,17 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
     }
 
     // Nuevas funciones para estadísticas
+
+    fun getAllUsuarios2():Flow<List<Inscripcion>>{
+        return inscripcionDao.getAll()
+    }
+
+    suspend fun getUsuarioSinFlow(usuarioId: Int): Usuario? {
+        return withContext(Dispatchers.IO) {
+            usuarioDao.getByIdDirecto(usuarioId)
+        }
+    }
+
 
     fun getUsuariosPorMes(mes: String): Flow<List<Usuario>> {
         return usuarioDao.getUsuariosPorMes(mes)

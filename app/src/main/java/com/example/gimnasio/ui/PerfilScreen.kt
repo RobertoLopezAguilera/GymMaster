@@ -248,7 +248,7 @@ fun PerfilScreen(navController: NavHostController) {
                     },
                     colors = ListItemDefaults.colors(containerColor = GymWhite),
                     modifier = Modifier.clickable {
-
+                        navController.navigate("inscripciones_lista")
                     }
                 )
 

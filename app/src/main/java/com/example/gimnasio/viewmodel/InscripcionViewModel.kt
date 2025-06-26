@@ -47,6 +47,10 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         return usuarioDao.getUsuarioPorId(usuarioId)
     }
 
+    fun getAllUsuarios():Flow<List<Inscripcion>>{
+        return inscripcionDao.getAll()
+    }
+
     fun getByUsuario(usuarioId: Int): Flow<List<Inscripcion>> {
         return inscripcionDao.getByUsuario(usuarioId)
     }

@@ -291,6 +291,9 @@ fun MainScreen() {
                 composable("agregar_membresia") {
                     AgregarMembresiaScreen(navController = navController)
                 }
+                composable("inscripciones_lista") {
+                    InscripcionesScreen(navController = navController)
+                }
                 composable("editar_membresia/{id}") { backStackEntry ->
                     val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
                     id?.let {

@@ -9,7 +9,7 @@ interface InscripcionDao {
     @Query("SELECT * FROM inscripciones")
     fun getAll(): Flow<List<Inscripcion>>
 
-    @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY id DESC")
+    @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY idUsuario DESC")
     fun getByUsuario(usuarioId: Int): Flow<List<Inscripcion>>
 
     @Query("SELECT COUNT(*) FROM inscripciones")
