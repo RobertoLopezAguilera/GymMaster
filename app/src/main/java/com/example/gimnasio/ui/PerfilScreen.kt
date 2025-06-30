@@ -2,6 +2,7 @@ package com.example.gimnasio.ui
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,12 +42,16 @@ import androidx.navigation.NavHostController
 import com.example.gimnasio.ui.theme.*
 import com.example.gimnasio.R
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
+import com.example.gimnasio.data.AppDatabase
+import com.example.gimnasio.data.db.FirestoreSyncService
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +61,15 @@ fun PerfilScreen(navController: NavHostController) {
     val user = FirebaseAuth.getInstance().currentUser
     val photoUrl = user?.photoUrl?.toString()
     val correo = user?.email ?: "No logueado"
+    val db = remember { AppDatabase.getDatabase(context) }
+    val syncService = remember {
+        FirestoreSyncService(
+            usuarioDao = db.usuarioDao(),
+            membresiaDao = db.membresiaDao(),
+            inscripcionDao = db.inscripcionDao()
+        )
+    }
+    val scope = rememberCoroutineScope()
 
     // Estado para mostrar diálogo
     var mostrarDialogoEstadisticas by remember { mutableStateOf(false) }
@@ -218,7 +232,7 @@ fun PerfilScreen(navController: NavHostController) {
 
                 Divider(color = GymWhite, thickness = 1.dp)
 
-                // Backup
+                // Backup manual
                 ListItem(
                     headlineContent = { Text("Copia de seguridad", color = GymDarkBlue) },
                     supportingContent = { Text("Guardar en la nube o dispositivo", color = GymDarkBlue) },
@@ -230,7 +244,19 @@ fun PerfilScreen(navController: NavHostController) {
                         )
                     },
                     colors = ListItemDefaults.colors(containerColor = GymWhite),
-                    modifier = Modifier.clickable { /* Backup lógica */ }
+                    modifier = Modifier.clickable {
+                        scope.launch {
+                            syncService.restoreAll { restaurado ->
+                                if (restaurado) {
+                                    syncService.backupAll {
+                                        Toast.makeText(context, "Sincronización completada", Toast.LENGTH_SHORT).show()
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Error al restaurar desde Firestore", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
                 )
 
                 Divider(color = GymWhite, thickness = 1.dp)

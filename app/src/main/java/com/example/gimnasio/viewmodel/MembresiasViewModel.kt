@@ -17,10 +17,6 @@ class MembresiasViewModel(application: Application) : AndroidViewModel(applicati
 
     private val membresiaDao = AppDatabase.getDatabase(application).membresiaDao()
 
-    init {
-        insertarMembresiasDePrueba()
-    }
-
     // Flow observable de membresías
     val membresias: StateFlow<List<Membresia>> = membresiaDao.getAll()
         .stateIn(
@@ -61,21 +57,6 @@ class MembresiasViewModel(application: Application) : AndroidViewModel(applicati
     fun actualizarMembresia(membresia: Membresia) {
         viewModelScope.launch {
             membresiaDao.update(membresia)
-        }
-    }
-
-
-    private fun insertarMembresiasDePrueba() {
-        viewModelScope.launch {
-            if (membresiaDao.getCount() == 0) {
-                val membresias = listOf(
-                    Membresia(tipo = "Mensual", costo = 400.0, duracionDias = 30),
-                    Membresia(tipo = "Semanal", costo = 120.0, duracionDias = 7),
-                    Membresia(tipo = "Prueba", costo = 50.0, duracionDias = 3),
-                    Membresia(tipo = "Trimestral", costo = 1000.0, duracionDias = 90)
-                )
-                membresias.forEach { membresiaDao.insert(it) }
-            }
         }
     }
 }

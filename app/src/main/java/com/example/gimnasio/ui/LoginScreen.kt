@@ -37,10 +37,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.gimnasio.MainActivity
 import com.example.gimnasio.MainScreenActivity
 import com.example.gimnasio.R
 import com.example.gimnasio.ui.theme.*
+import com.example.gimnasio.worker.FirestoreBackupWorker
 import java.util.concurrent.TimeUnit
 
 class LoginActivity : ComponentActivity() {
@@ -59,6 +65,7 @@ class LoginActivity : ComponentActivity() {
         val currentUser = firebaseAuth.currentUser
 
         if (currentUser != null && !userEmail.isNullOrEmpty()) {
+            scheduleFirestoreWorker() // <- Inicia el worker si ya hay sesión activa
             startActivity(Intent(this, MainScreenActivity::class.java))
             finish()
             return
@@ -78,6 +85,7 @@ class LoginActivity : ComponentActivity() {
                 },
                 onLoginSuccess = { email ->
                     sharedPreferences.edit().putString("USER_EMAIL", email).apply()
+                    scheduleFirestoreWorker() // <- Inicia el worker al iniciar sesión
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 }
@@ -100,6 +108,7 @@ class LoginActivity : ComponentActivity() {
                                 if (!email.isNullOrEmpty()) {
                                     val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
                                     sharedPreferences.edit().putString("USER_EMAIL", email).apply()
+                                    scheduleFirestoreWorker() // <- Inicia el worker después de login
                                     startActivity(Intent(this, MainScreenActivity::class.java))
                                     finish()
                                 }
@@ -112,6 +121,22 @@ class LoginActivity : ComponentActivity() {
                 Toast.makeText(this, "Error Google: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun scheduleFirestoreWorker() {
+        val workRequest = PeriodicWorkRequestBuilder<FirestoreBackupWorker>(4, TimeUnit.HOURS)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED) // solo con conexión
+                    .build()
+            )
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "FirestoreSync",
+            ExistingPeriodicWorkPolicy.KEEP, // no lo vuelve a crear si ya existe
+            workRequest
+        )
     }
 }
 
