@@ -182,8 +182,8 @@ fun PerfilScreen(navController: NavHostController) {
             Column {
                 // Estadísticas con diálogo
                 ListItem(
-                    headlineContent = { Text("Estadísticas del Gimnasio") },
-                    supportingContent = { Text("Gráficas y más") },
+                    headlineContent = { Text("Estadísticas del Gimnasio",color = GymDarkBlue) },
+                    supportingContent = { Text("Gráficas y más", color = GymDarkBlue) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_stats),
@@ -204,7 +204,7 @@ fun PerfilScreen(navController: NavHostController) {
                     headlineContent = {
                         Text("Exportar datos", color = GymDarkBlue)
                     },
-                    supportingContent = { Text("Generar reporte en PDF/Excel") },
+                    supportingContent = { Text("Generar reporte en PDF/Excel", color = GymDarkBlue) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_export),
@@ -220,8 +220,8 @@ fun PerfilScreen(navController: NavHostController) {
 
                 // Backup
                 ListItem(
-                    headlineContent = { Text("Copia de seguridad") },
-                    supportingContent = { Text("Guardar en la nube o dispositivo") },
+                    headlineContent = { Text("Copia de seguridad", color = GymDarkBlue) },
+                    supportingContent = { Text("Guardar en la nube o dispositivo", color = GymDarkBlue) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_backup),
@@ -237,8 +237,10 @@ fun PerfilScreen(navController: NavHostController) {
 
                 //Lista de inscripciones
                 ListItem(
-                    headlineContent = { Text("Lista de Inscripciones") },
-                    supportingContent = { Text("Subscripcion de todos los usuarios") },
+                    headlineContent = { Text("Lista de Inscripciones",
+                        color = GymDarkBlue) },
+                    supportingContent = { Text("Subscripcion de todos los usuarios",
+                        color = GymDarkBlue) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_membresia),

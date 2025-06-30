@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface InscripcionDao {
-    @Query("SELECT * FROM inscripciones")
+    @Query("SELECT * FROM inscripciones ORDER BY idUsuario DESC")
     fun getAll(): Flow<List<Inscripcion>>
 
     @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY idUsuario DESC")
@@ -17,6 +17,18 @@ interface InscripcionDao {
 
     @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY id DESC LIMIT 1")
     fun getByUsuarioId(usuarioId: Int): Flow<Inscripcion?>
+
+    @Query("SELECT * FROM inscripciones WHERE strftime('%Y', fechaPago) = :año")
+    fun getInscripcionesPorAño(año: String): Flow<List<Inscripcion>>
+
+    @Query("SELECT * FROM inscripciones WHERE strftime('%Y-%m', fechaPago) = :mes")
+    fun getInscripcionesPorMes(mes: String): Flow<List<Inscripcion>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(inscripciones: List<Inscripcion>)
+
+    @Query("DELETE FROM inscripciones")
+    suspend fun clearAll()
 
 //    @Query("SELECT * FROM inscripciones WHERE fechaPago = :fecha")
 //    fun obtenerInscripcionesPorFechaPago(fecha: String): Flow<List<Inscripcion>>

@@ -6,21 +6,15 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.runtime.State
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -34,16 +28,20 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.*
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import com.example.gimnasio.MainActivity
 import com.example.gimnasio.MainScreenActivity
 import com.example.gimnasio.R
+import com.example.gimnasio.ui.theme.*
+import java.util.concurrent.TimeUnit
 
 class LoginActivity : ComponentActivity() {
 
@@ -117,7 +115,6 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 fun LoginScreen(
     onGoogleSignInClick: () -> Unit,
@@ -128,64 +125,170 @@ fun LoginScreen(
     val email by viewModel.email
     val password by viewModel.password
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(GymLightGray)
     ) {
-        Text("Iniciar Sesión", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
-        Spacer(Modifier.height(20.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = viewModel::onEmailChange,
-            label = { Text("Correo electrónico") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = viewModel::onPasswordChange,
-            label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        Button(onClick = {
-            viewModel.login(
-                onSuccess = { onLoginSuccess(email) },
-                onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Título
+            Text(
+                text = "Iniciar Sesión",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = GymDarkBlue
+                )
             )
-        }, modifier = Modifier.fillMaxWidth()) {
-            Text("Iniciar Sesión")
-        }
 
-        Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(32.dp))
 
-        Button(onClick = {
-            viewModel.register(
-                onSuccess = { onLoginSuccess(email) },
-                onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+            // Campo de email/teléfono
+            OutlinedTextField(
+                value = email,
+                onValueChange = viewModel::onEmailChange,
+                label = {
+                    Text(
+                        "Correo electrónico o número",
+                        color = GymDarkBlue
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                    unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                    focusedIndicatorColor = GymMediumBlue,
+                    unfocusedIndicatorColor = GymMediumGray,
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
-        }, modifier = Modifier.fillMaxWidth()) {
-            Text("Registrar")
-        }
 
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
-        Text("O")
+            // Campo de contraseña
+            OutlinedTextField(
+                value = password,
+                onValueChange = viewModel::onPasswordChange,
+                label = {
+                    Text(
+                        "Contraseña",
+                        color = GymDarkBlue
+                    )
+                },
+                visualTransformation = PasswordVisualTransformation(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                    unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                    focusedIndicatorColor = GymMediumBlue,
+                    unfocusedIndicatorColor = GymMediumGray,
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
 
-        Button(onClick = onGoogleSignInClick, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.AccountCircle, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Iniciar con Google")
+            // Botón de inicio de sesión
+            Button(
+                onClick = {
+                    viewModel.login(
+                        context = context,
+                        onSuccess = { onLoginSuccess(it) },
+                        onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GymDarkBlue,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    "Iniciar Sesión",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Botón de registro
+            Button(
+                onClick = {
+                    viewModel.register(
+                        context = context,
+                        onSuccess = { onLoginSuccess(it) },
+                        onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GymWhite,
+                    contentColor = GymDarkBlue
+                ),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, GymDarkBlue)
+            ) {
+                Text(
+                    "Registrar",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            Spacer(Modifier.height(32.dp))
+
+            // Divisor
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Divider(
+                    color = GymLightBlue,
+                    thickness = 1.dp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "O",
+                    color = GymMediumBlue,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Divider(
+                    color = GymLightBlue,
+                    thickness = 1.dp,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Botón de Google
+            OutlinedButton(
+                onClick = onGoogleSignInClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = GymDarkBlue
+                ),
+                border = BorderStroke(1.dp, GymLightBlue),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_google),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "Iniciar con Google",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
     }
 }
@@ -203,41 +306,67 @@ class LoginViewModel : ViewModel() {
     fun onEmailChange(value: String) { _email.value = value }
     fun onPasswordChange(value: String) { _password.value = value }
 
-    private fun validarEntradas(correo: String, contrasena: String): String? {
-        return when {
-            correo.isEmpty() -> "Correo vacío"
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches() -> "Correo no válido"
-            contrasena.isEmpty() -> "Contraseña vacía"
-            contrasena.length < 6 -> "Contraseña muy corta"
-            else -> null
-        }
-    }
+    fun login(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        val correoONumero = email.value
+        val contrasena = password.value
 
-    fun login(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val error = validarEntradas(email.value, password.value)
-        if (error != null) {
-            onError(error)
+        if (correoONumero.isEmpty()) {
+            onError("Campo vacío")
             return
         }
 
-        auth.signInWithEmailAndPassword(email.value, password.value)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) onSuccess()
-                else onError("Error al iniciar sesión")
-            }
+        if (android.util.Patterns.EMAIL_ADDRESS.matcher(correoONumero).matches()) {
+            auth.signInWithEmailAndPassword(correoONumero, contrasena)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) onSuccess(correoONumero)
+                    else onError("Error al iniciar sesión con correo")
+                }
+        } else if (android.util.Patterns.PHONE.matcher(correoONumero).matches()) {
+            val options = PhoneAuthOptions.newBuilder(auth)
+                .setPhoneNumber(correoONumero)
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(context as ComponentActivity)
+                .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                        auth.signInWithCredential(credential)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) onSuccess(correoONumero)
+                                else onError("Error al iniciar sesión con número")
+                            }
+                    }
+
+                    override fun onVerificationFailed(e: FirebaseException) {
+                        onError("Verificación fallida: ${e.localizedMessage}")
+                    }
+
+                    override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
+                        onError("Código enviado. Agrega lógica para verificar el código recibido.")
+                    }
+                })
+                .build()
+            PhoneAuthProvider.verifyPhoneNumber(options)
+        } else {
+            onError("Formato de entrada no válido")
+        }
     }
 
-    fun register(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val error = validarEntradas(email.value, password.value)
-        if (error != null) {
-            onError(error)
+    fun register(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        val correoONumero = email.value
+        val contrasena = password.value
+
+        if (correoONumero.isEmpty()) {
+            onError("Campo vacío")
             return
         }
 
-        auth.createUserWithEmailAndPassword(email.value, password.value)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) onSuccess()
-                else onError("Error al registrar usuario")
-            }
+        if (android.util.Patterns.EMAIL_ADDRESS.matcher(correoONumero).matches()) {
+            auth.createUserWithEmailAndPassword(correoONumero, contrasena)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) onSuccess(correoONumero)
+                    else onError("Error al registrar usuario")
+                }
+        } else {
+            onError("Solo se permite registrar con correo, el inicio por número solo está disponible para login")
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.model.Inscripcion
+import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.data.model.Usuario
 import com.example.gimnasio.ui.FilterType
 import kotlinx.coroutines.flow.Flow
@@ -18,13 +19,14 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.flow.flowOf
+import java.time.format.DateTimeFormatter
 
 
 class InscripcionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val inscripcionDao = AppDatabase.getDatabase(application).inscripcionDao()
     private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
-
+    private val membresiaDao = AppDatabase.getDatabase(application).membresiaDao()
     init {
         insertarInscripcionesDePrueba()
     }
@@ -38,6 +40,20 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
+
+    fun getInscripcionesPorFiltro(filtro: String, tipo: FilterType): Flow<List<Inscripcion>> {
+        return when (tipo) {
+            FilterType.MONTH -> inscripcionDao.getInscripcionesPorMes(filtro)
+            FilterType.YEAR -> inscripcionDao.getInscripcionesPorAño(filtro)
+        }
+    }
+
+    // Función para parsear fechas
+    fun parseFecha(fecha: String): LocalDate {
+        return LocalDate.parse(fecha, DateTimeFormatter.ISO_DATE)
+    }
+
+    val membresias: Flow<List<Membresia>> = membresiaDao.getAll()
 
     fun obtenerInscripcionPorUsuario(usuarioId: Int): Flow<Inscripcion?> {
         return inscripcionDao.getByUsuarioId(usuarioId)

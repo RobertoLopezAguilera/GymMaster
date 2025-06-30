@@ -87,6 +87,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.2.0")
     implementation("com.google.firebase:firebase-firestore")
 
+    //Facebook
+    //implementation ("com.facebook.android:facebook-android-sdk:[4,5)")
+    implementation("com.facebook.android:facebook-login:16.3.0")
+
     // Lottie para Jetpack Compose
     //implementation("com.airbnb.android:lottie-compose:6.4.0")
 
@@ -96,13 +100,8 @@ dependencies {
 
     // Graficas
     implementation("com.github.tehras:charts:0.2.4-alpha")
-
-
-//    implementation("androidx.compose.ui:ui:1.5.0")
-//    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
-//    implementation("androidx.compose.foundation:foundation:1.5.0")
-//    implementation("androidx.compose.runtime:runtime-livedata:1.5.0")
-//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-//    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    //"C:\Users\Dell\Desktop\keystoreGymManager.jks"
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

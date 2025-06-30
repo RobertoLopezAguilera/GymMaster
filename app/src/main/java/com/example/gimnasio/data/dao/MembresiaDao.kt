@@ -24,4 +24,10 @@ interface MembresiaDao {
     @Delete
     suspend fun delete(membresia: Membresia)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(membresias: List<Membresia>)
+
+    @Query("DELETE FROM membresias")
+    suspend fun clearAll()
+
 }

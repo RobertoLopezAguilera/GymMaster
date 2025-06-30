@@ -1,5 +1,7 @@
 package com.example.gimnasio.ui
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,6 +28,8 @@ import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import com.example.gimnasio.R
 import com.example.gimnasio.ui.theme.*
+import com.facebook.login.LoginManager
+import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +40,7 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val context = LocalContext.current
 
     // Estado para controlar el título dinámico
     val currentScreenTitle = remember { mutableStateOf("Calabozo Gym") }
@@ -59,13 +65,13 @@ fun MainScreen() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = false, // ✅ Deshabilita deslizamiento
+        gesturesEnabled = false, //Deshabilita deslizamiento
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier.width(280.dp),
                 drawerContainerColor = GymDarkBlue
             ) {
-                // 🔴 BOTÓN DE CERRAR DRAWER (parte superior)
+                // BOTÓN DE CERRAR DRAWER (parte superior)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -81,7 +87,7 @@ fun MainScreen() {
                     }
                 }
 
-                // 🔴 HEADER
+                // HEADER
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -106,7 +112,73 @@ fun MainScreen() {
                     }
                 }
 
-                // 🔴 ITEM: Ajustes
+                //  ITEM: EstadisticasUsuario
+                NavigationDrawerItem(
+                    label = {
+                        Text("Datos sobre Usuarios", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
+                    },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("estadisticas_usuarios")
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_stats),
+                            contentDescription = "Usuarios",
+                            tint = GymWhite
+                        )
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent
+                    )
+                )
+
+                //  ITEM: EstadisticasUsuario
+                NavigationDrawerItem(
+                    label = {
+                        Text("Datos sobre Inscripciones", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
+                    },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("estadisticas_inscripciones")
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_stats_iscripciones),
+                            contentDescription = "Inscripciones",
+                            tint = GymWhite
+                        )
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent
+                    )
+                )
+
+                //  ITEM: Lista de inscripciones
+                NavigationDrawerItem(
+                    label = {
+                        Text("Lista de Inscripciones", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
+                    },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("inscripciones_lista")
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_lista_inscripciones),
+                            contentDescription = "Inscripciones Lista",
+                            tint = GymWhite
+                        )
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent
+                    )
+                )
+
+                //  ITEM: Ajustes
                 NavigationDrawerItem(
                     label = {
                         Text("Ajustes", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
@@ -128,7 +200,7 @@ fun MainScreen() {
                     )
                 )
 
-                // 🔴 ITEM: Cerrar sesión
+                //  ITEM: Cerrar sesión
                 NavigationDrawerItem(
                     label = {
                         Text("Cerrar sesión", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
@@ -136,7 +208,15 @@ fun MainScreen() {
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
-                        // Lógica de cerrar sesión
+                        FirebaseAuth.getInstance().signOut()
+                        LoginManager.getInstance().logOut() // <-- Cierre de sesión de Facebook
+
+                        val sharedPreferences = context.getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+                        sharedPreferences.edit().remove("USER_EMAIL").apply()
+
+                        val intent = Intent(context, LoginActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        context.startActivity(intent)
                     },
                     icon = {
                         Icon(

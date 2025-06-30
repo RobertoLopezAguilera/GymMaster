@@ -274,7 +274,7 @@ fun EstadisticasUsuariosScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 // Total de usuarios
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Usuarios: ", color = GymMediumGray)
+                    Text("Usuarios: ", color = GymDarkBlue)
                     Text(
                         usuariosFiltrados.size.toString(),
                         style = MaterialTheme.typography.headlineSmall.copy(color = GymDarkBlue)
@@ -283,7 +283,7 @@ fun EstadisticasUsuariosScreen(
                     if (filtroGenero != null || filtroExperiencia != null) {
                         Text(
                             "(${usuarios.size} total)",
-                            style = MaterialTheme.typography.bodySmall.copy(color = GymMediumGray)
+                            style = MaterialTheme.typography.bodySmall.copy(color = GymDarkBlue)
                         )
                     }
                 }
@@ -292,7 +292,8 @@ fun EstadisticasUsuariosScreen(
                 if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Column {
-                        Text("Distribución por género:", style = MaterialTheme.typography.labelMedium)
+                        Text("Distribución por género:", style = MaterialTheme.typography.labelMedium,
+                            color = GymDarkBlue)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -301,8 +302,9 @@ fun EstadisticasUsuariosScreen(
                             estadisticasGenero.forEach { (genero, porcentaje) ->
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = genero.toString().take(3),
-                                        style = MaterialTheme.typography.labelSmall
+                                        text = genero.toString(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GymDarkBlue
                                     )
                                     Text(
                                         text = "%.1f%%".format(porcentaje),
@@ -325,7 +327,8 @@ fun EstadisticasUsuariosScreen(
                 if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Column {
-                        Text("Distribución por experiencia:", style = MaterialTheme.typography.labelMedium)
+                        Text("Distribución por experiencia:", style = MaterialTheme.typography.labelMedium,
+                            color = GymDarkBlue)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -334,7 +337,8 @@ fun EstadisticasUsuariosScreen(
                             estadisticasExperiencia.forEach { (experiencia, porcentaje) ->
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = experiencia.toString().take(3),
+                                        text = experiencia.toString(),
+                                        color = GymDarkBlue,
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                     Text(
@@ -833,6 +837,7 @@ fun DropdownMenuFiltroTipo(
     Box {
         Text(
             text = if (selected == FilterType.MONTH) "Mes" else "Año",
+            color = GymDarkBlue,
             modifier = Modifier
                 .background(GymWhite, RoundedCornerShape(8.dp))
                 .clickable { expanded = true }
@@ -857,6 +862,7 @@ fun DropdownMenuAño(selected: String, options: List<String>, onSelected: (Strin
     Box {
         Text(
             text = selected,
+            color = GymDarkBlue,
             modifier = Modifier
                 .background(GymWhite, RoundedCornerShape(8.dp))
                 .clickable { expanded = true }
@@ -881,6 +887,7 @@ fun DropdownMenuMes(selectedMes: String, mesesMap: Map<String, String>, onSelect
     Box {
         Text(
             text = mesNombre,
+            color = GymDarkBlue,
             modifier = Modifier
                 .background(GymWhite, RoundedCornerShape(8.dp))
                 .clickable { expanded = true }
