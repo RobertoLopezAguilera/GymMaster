@@ -26,6 +26,9 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios")
     fun getAllUsuarios(): Flow<List<Usuario>>
 
+    @Query("SELECT * FROM usuarios")
+    fun getAllUsuariosSinFlow(): List<Usuario>
+
     @Insert
     suspend fun insert(usuario: Usuario)
 

@@ -6,11 +6,11 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "usuarios")
 data class Usuario(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val nombre: String,
-    val genero: String,
-    val edad: Int,
-    val peso: Double,
-    val experiencia: String, // Principiante, Intermedio, Avanzado, Mixto
-
-    val fechaInscripcion: String // sirve para crear historial
+    val nombre: String = "",
+    val genero: String = "",
+    val edad: Int = 0,
+    val peso: Double = 0.0,
+    val experiencia: String = "",
+    val fechaInscripcion: String = ""
 )
+

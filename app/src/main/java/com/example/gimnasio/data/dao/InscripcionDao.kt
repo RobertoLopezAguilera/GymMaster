@@ -9,6 +9,9 @@ interface InscripcionDao {
     @Query("SELECT * FROM inscripciones ORDER BY idUsuario DESC")
     fun getAll(): Flow<List<Inscripcion>>
 
+    @Query("SELECT * FROM inscripciones ORDER BY idUsuario DESC")
+    fun getAllSinFlow(): List<Inscripcion>
+
     @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY idUsuario DESC")
     fun getByUsuario(usuarioId: Int): Flow<List<Inscripcion>>
 

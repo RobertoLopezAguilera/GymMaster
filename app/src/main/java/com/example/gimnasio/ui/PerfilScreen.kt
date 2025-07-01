@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,7 +52,11 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.db.FirestoreSyncService
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -233,6 +238,10 @@ fun PerfilScreen(navController: NavHostController) {
                 Divider(color = GymWhite, thickness = 1.dp)
 
                 // Backup manual
+                // Agrega este estado en tu composable
+                var isBackingUp by remember { mutableStateOf(false) }
+
+// Luego modifica el ListItem:
                 ListItem(
                     headlineContent = { Text("Copia de seguridad", color = GymDarkBlue) },
                     supportingContent = { Text("Guardar en la nube o dispositivo", color = GymDarkBlue) },
@@ -243,16 +252,39 @@ fun PerfilScreen(navController: NavHostController) {
                             tint = GymDarkBlue
                         )
                     },
+                    trailingContent = {
+                        if (isBackingUp) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = GymDarkBlue,
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    },
                     colors = ListItemDefaults.colors(containerColor = GymWhite),
                     modifier = Modifier.clickable {
-                        scope.launch {
-                            syncService.restoreAll { restaurado ->
-                                if (restaurado) {
-                                    syncService.backupAll {
-                                        Toast.makeText(context, "Sincronización completada", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    Toast.makeText(context, "Error al restaurar desde Firestore", Toast.LENGTH_SHORT).show()
+                        if (!isBackingUp) {
+                            isBackingUp = true
+                            scope.launch {
+                                try {
+                                    Toast.makeText(context, "Iniciando respaldo...", Toast.LENGTH_SHORT).show()
+
+                                    // Usando la versión con suspend function
+                                    val success = syncService.backupAllWithResult()
+
+                                    Toast.makeText(
+                                        context,
+                                        if (success) "Respaldo completado" else "Error en respaldo",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error: ${e.localizedMessage ?: "Error desconocido"}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } finally {
+                                    isBackingUp = false
                                 }
                             }
                         }

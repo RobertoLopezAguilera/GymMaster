@@ -15,9 +15,10 @@ import androidx.room.PrimaryKey
 )
 data class Inscripcion(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val idUsuario: Int,
-    val idMembresia: Int,
-    val fechaPago: String,
-    val fechaVencimiento: String,
-    val pagado: Boolean
+    val idUsuario: Int = 0,
+    val idMembresia: Int = 0,
+    val fechaPago: String = "",
+    val fechaVencimiento: String = "",
+    val pagado: Boolean = false
 )
+

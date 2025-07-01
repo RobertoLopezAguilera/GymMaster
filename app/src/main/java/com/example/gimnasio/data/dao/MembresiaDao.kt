@@ -9,6 +9,9 @@ interface MembresiaDao {
     @Query("SELECT * FROM membresias")
     fun getAll(): Flow<List<Membresia>>
 
+    @Query("SELECT * FROM membresias")
+    fun getAllSinFlow(): List<Membresia>
+
     @Query("SELECT * FROM membresias WHERE id = :id")
     fun getById(id: Int): Flow<Membresia?>
 
