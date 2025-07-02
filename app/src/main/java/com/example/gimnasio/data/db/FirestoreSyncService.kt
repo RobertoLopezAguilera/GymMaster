@@ -28,6 +28,21 @@ class FirestoreSyncService(
     private val firestore = FirebaseFirestore.getInstance()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    // Función para verificar si existen datos del usuario en Firestore
+    suspend fun checkUserDataExists(uid: String): Boolean {
+        return try {
+            val usuariosRef = firestore.collection("usuarios_data")
+                .document(uid)
+                .collection("usuarios")
+                .limit(1)
+                .get()
+                .await()
+
+            !usuariosRef.isEmpty
+        } catch (e: Exception) {
+            false
+        }
+    }
     fun backupAll(onComplete: (Boolean, String?) -> Unit = { _, _ -> }) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
             onComplete(false, "Usuario no autenticado")
@@ -169,7 +184,7 @@ class FirestoreSyncService(
 
     suspend fun backupAllWithResult(): Boolean {
         return suspendCancellableCoroutine { continuation ->
-            backupAll { success, message ->
+            backupAll { success, _ ->
                 continuation.resume(success)
             }
         }
@@ -177,9 +192,54 @@ class FirestoreSyncService(
 
     suspend fun restoreAllWithResult(): Boolean {
         return suspendCancellableCoroutine { continuation ->
-            restoreAll { success, message ->
+            restoreAll { success, _ ->
                 continuation.resume(success)
             }
+        }
+    }
+
+    suspend fun syncAllDevicesData(uid: String): Boolean {
+        return try {
+            // 1. Primero subir nuestros datos
+            val backupSuccess = backupAllWithResult()
+            if (!backupSuccess) return false
+
+            // 2. Luego descargar y mezclar datos de otros dispositivos
+            val otherDevicesData = firestore.collection("usuarios_data")
+                .get()
+                .await()
+
+            otherDevicesData.documents.forEach { deviceDoc ->
+                if (deviceDoc.id != uid) {
+                    // Usuarios
+                    firestore.collection("usuarios_data")
+                        .document(deviceDoc.id)
+                        .collection("usuarios")
+                        .get()
+                        .await()
+                        .let { usuarioDao.insertAll(it.toObjects(Usuario::class.java)) }
+
+                    // Membresías
+                    firestore.collection("usuarios_data")
+                        .document(deviceDoc.id)
+                        .collection("membresias")
+                        .get()
+                        .await()
+                        .let { membresiaDao.insertAll(it.toObjects(Membresia::class.java)) }
+
+                    // Inscripciones
+                    firestore.collection("usuarios_data")
+                        .document(deviceDoc.id)
+                        .collection("inscripciones")
+                        .get()
+                        .await()
+                        .let { inscripcionDao.insertAll(it.toObjects(Inscripcion::class.java)) }
+                }
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 

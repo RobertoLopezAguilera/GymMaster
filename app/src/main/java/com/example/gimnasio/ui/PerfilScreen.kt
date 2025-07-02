@@ -237,14 +237,12 @@ fun PerfilScreen(navController: NavHostController) {
 
                 Divider(color = GymWhite, thickness = 1.dp)
 
-                // Backup manual
-                // Agrega este estado en tu composable
+                // Backup manual con sincronización
                 var isBackingUp by remember { mutableStateOf(false) }
 
-// Luego modifica el ListItem:
                 ListItem(
                     headlineContent = { Text("Copia de seguridad", color = GymDarkBlue) },
-                    supportingContent = { Text("Guardar en la nube o dispositivo", color = GymDarkBlue) },
+                    supportingContent = { Text("Guardar y sincronizar con otros dispositivos", color = GymDarkBlue) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_backup),
@@ -267,16 +265,47 @@ fun PerfilScreen(navController: NavHostController) {
                             isBackingUp = true
                             scope.launch {
                                 try {
-                                    Toast.makeText(context, "Iniciando respaldo...", Toast.LENGTH_SHORT).show()
+                                    val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                    if (uid == null) {
+                                        Toast.makeText(
+                                            context,
+                                            "Error: Usuario no autenticado",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        return@launch
+                                    }
 
-                                    // Usando la versión con suspend function
-                                    val success = syncService.backupAllWithResult()
+                                    // 1. Mostrar mensaje de inicio
+                                    Toast.makeText(context, "Iniciando respaldo y sincronización...", Toast.LENGTH_SHORT).show()
 
-                                    Toast.makeText(
-                                        context,
-                                        if (success) "Respaldo completado" else "Error en respaldo",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    // 2. Realizar respaldo local -> Firestore usando la versión suspend
+                                    val backupSuccess = try {
+                                        syncService.backupAllWithResult()
+                                    } catch (e: Exception) {
+                                        false
+                                    }
+
+                                    // 3. Sincronizar datos con otros dispositivos solo si el respaldo fue exitoso
+                                    if (backupSuccess) {
+                                        val syncSuccess = try {
+                                            syncService.syncAllDevicesData(uid)
+                                        } catch (e: Exception) {
+                                            false
+                                        }
+
+                                        Toast.makeText(
+                                            context,
+                                            if (syncSuccess) "Sincronización completada" else "Error en sincronización",
+                                            if (syncSuccess) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Error en el respaldo inicial",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+
                                 } catch (e: Exception) {
                                     Toast.makeText(
                                         context,
