@@ -24,12 +24,12 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
     private val membresiaDao = db.membresiaDao()
 
     // Funciones existentes
-    fun getUsuario(usuarioId: Int): Flow<Usuario?> = usuarioDao.getUsuarioPorId(usuarioId)
-    fun getInscripcion(usuarioId: Int): Flow<Inscripcion?> = inscripcionDao.getByUsuarioId(usuarioId)
-    fun getMembresia(membresiaId: Int): Flow<Membresia?> = membresiaDao.getById(membresiaId)
+    fun getUsuario(usuarioId: String): Flow<Usuario?> = usuarioDao.getUsuarioPorId(usuarioId)
+    fun getInscripcion(usuarioId: String): Flow<Inscripcion?> = inscripcionDao.getByUsuarioId(usuarioId)
+    fun getMembresia(membresiaId: String): Flow<Membresia?> = membresiaDao.getById(membresiaId)
 
     // En tu ViewModel
-    val allUsuarios: Flow<Map<Int, Usuario>> = usuarioDao.getUsuariosFlow().map { usuarios ->
+    val allUsuarios: Flow<Map<String, Usuario>> = usuarioDao.getUsuariosFlow().map { usuarios ->
         usuarios.associateBy { it.id }
     }
 
@@ -39,7 +39,7 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    fun eliminarUsuarioConTodo(usuarioId: Int, onFinish: () -> Unit) {
+    fun eliminarUsuarioConTodo(usuarioId: String, onFinish: () -> Unit) {
         viewModelScope.launch {
             inscripcionDao.eliminarPorUsuario(usuarioId)
             usuarioDao.eliminarPorId(usuarioId)
@@ -59,7 +59,7 @@ class UsuarioDetalleViewModel(application: Application) : AndroidViewModel(appli
         return inscripcionDao.getAll()
     }
 
-    suspend fun getUsuarioSinFlow(usuarioId: Int): Usuario? {
+    suspend fun getUsuarioSinFlow(usuarioId: String): Usuario? {
         return withContext(Dispatchers.IO) {
             usuarioDao.getByIdDirecto(usuarioId)
         }

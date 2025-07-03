@@ -1,6 +1,7 @@
 package com.example.gimnasio.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -29,41 +30,45 @@ class AutoBackupWorker(
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    // Constructor alternativo para inyección de dependencias en tests
-    constructor(context: Context, workerParams: WorkerParameters) : this(context, workerParams, null, null, null)
+    constructor(context: Context, workerParams: WorkerParameters)
+            : this(context, workerParams, null, null, null)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             val uid = FirebaseAuth.getInstance().currentUser?.uid
-            if (uid == null) {
+            if (uid.isNullOrBlank()) {
+                Log.w("AutoBackupWorker", "No hay sesión activa.")
                 return@withContext Result.retry()
             }
 
-            // Obtener instancias de DAO si no fueron inyectadas
             val db = AppDatabase.getDatabase(applicationContext)
-            val usuarioDao = usuarioDao ?: db.usuarioDao()
-            val membresiaDao = membresiaDao ?: db.membresiaDao()
-            val inscripcionDao = inscripcionDao ?: db.inscripcionDao()
+            val usuarios = usuarioDao ?: db.usuarioDao()
+            val membresias = membresiaDao ?: db.membresiaDao()
+            val inscripciones = inscripcionDao ?: db.inscripcionDao()
 
-            // Crear instancia del servicio de sincronización
-            val syncService = FirestoreSyncService(usuarioDao, membresiaDao, inscripcionDao)
+            val syncService = FirestoreSyncService(usuarios, membresias, inscripciones)
 
-            // 1. Realizar respaldo completo
+            Log.d("AutoBackupWorker", "Iniciando respaldo local → Firestore...")
             val backupSuccess = syncService.backupAllWithResult()
+
             if (!backupSuccess) {
+                Log.e("AutoBackupWorker", "Error en backup. Reintentando...")
                 return@withContext Result.retry()
             }
 
-            // 2. Sincronizar datos entre dispositivos
+            Log.d("AutoBackupWorker", "Respaldo exitoso. Sincronizando Firestore → local...")
             val syncSuccess = syncService.syncAllDevicesData(uid)
 
             if (syncSuccess) {
+                Log.i("AutoBackupWorker", "Sincronización exitosa.")
                 Result.success()
             } else {
+                Log.e("AutoBackupWorker", "Fallo al sincronizar datos. Reintentando...")
                 Result.retry()
             }
+
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("AutoBackupWorker", "Excepción en Worker: ${e.localizedMessage}")
             Result.retry()
         }
     }
@@ -74,17 +79,14 @@ class AutoBackupWorker(
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val workRequest = PeriodicWorkRequestBuilder<AutoBackupWorker>(
-                5, // Cada 5 horas
-                TimeUnit.HOURS
-            )
+            val workRequest = PeriodicWorkRequestBuilder<AutoBackupWorker>(4, TimeUnit.HOURS)
                 .setConstraints(constraints)
-                .setInitialDelay(1, TimeUnit.HOURS) // Esperar 1 hora antes del primer trabajo
+                .setInitialDelay(15, TimeUnit.MINUTES)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 "auto_backup_work",
-                ExistingPeriodicWorkPolicy.UPDATE, // Actualiza si ya existe
+                ExistingPeriodicWorkPolicy.UPDATE,
                 workRequest
             )
         }

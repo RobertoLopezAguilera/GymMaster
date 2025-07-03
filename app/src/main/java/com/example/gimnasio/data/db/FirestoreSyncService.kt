@@ -1,5 +1,6 @@
 package com.example.gimnasio.data.db
 
+import android.util.Log
 import com.example.gimnasio.data.dao.InscripcionDao
 import com.example.gimnasio.data.dao.MembresiaDao
 import com.example.gimnasio.data.dao.UsuarioDao
@@ -8,6 +9,7 @@ import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.data.model.Usuario
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,214 +30,170 @@ class FirestoreSyncService(
     private val firestore = FirebaseFirestore.getInstance()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    // Función para verificar si existen datos del usuario en Firestore
     suspend fun checkUserDataExists(uid: String): Boolean {
         return try {
-            val usuariosRef = firestore.collection("usuarios_data")
+            val snapshot = firestore.collection("usuarios_data")
                 .document(uid)
                 .collection("usuarios")
                 .limit(1)
                 .get()
                 .await()
-
-            !usuariosRef.isEmpty
+            !snapshot.isEmpty
         } catch (e: Exception) {
             false
         }
     }
-    fun backupAll(onComplete: (Boolean, String?) -> Unit = { _, _ -> }) {
+
+    suspend fun backupAll(): Boolean = withContext(Dispatchers.IO) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            onComplete(false, "Usuario no autenticado")
-            return
+            Log.e("FirestoreBackup", "Usuario no autenticado")
+            return@withContext false
         }
 
-        scope.launch {
-            try {
-                // Usuarios
-                val usuarios = usuarioDao.getAllUsuariosSinFlow()
-                usuarios.forEach { usuario ->
-                    try {
-                        firestore.collection("usuarios_data")
-                            .document(uid)
-                            .collection("usuarios")
-                            .document(usuario.id.toString())
-                            .set(usuario)
-                            .await()
-                    } catch (e: Exception) {
-                        onComplete(false, "Error en usuarios: ${e.message}")
-                        return@launch
-                    }
-                }
+        try {
+            Log.d("FirestoreBackup", "Iniciando respaldo...")
 
-                // Membresías
-                val membresias = membresiaDao.getAllSinFlow()
-                membresias.forEach { membresia ->
-                    try {
-                        firestore.collection("usuarios_data")
-                            .document(uid)
-                            .collection("membresias")
-                            .document(membresia.id.toString())
-                            .set(membresia)
-                            .await()
-                    } catch (e: Exception) {
-                        onComplete(false, "Error en membresías: ${e.message}")
-                        return@launch
-                    }
-                }
+            val usuariosLocales = usuarioDao.getAllUsuariosSinFlow()
+            val membresiasLocales = membresiaDao.getAllSinFlow()
+            val inscripcionesLocales = inscripcionDao.getAllSinFlow()
 
-                // Inscripciones
-                val inscripciones = inscripcionDao.getAllSinFlow()
-                inscripciones.forEach { inscripcion ->
-                    try {
-                        firestore.collection("usuarios_data")
-                            .document(uid)
-                            .collection("inscripciones")
-                            .document(inscripcion.id.toString())
-                            .set(inscripcion)
-                            .await()
-                    } catch (e: Exception) {
-                        onComplete(false, "Error en inscripciones: ${e.message}")
-                        return@launch
-                    }
-                }
+            // === Usuarios ===
+            val usuariosRef = firestore.collection("usuarios_data").document(uid).collection("usuarios")
+            val usuariosRemotos = usuariosRef.get().await().documents.map { it.id }
 
-                onComplete(true, "Respaldo completado con éxito")
-            } catch (e: Exception) {
-                e.printStackTrace()
-                onComplete(false, "Error general: ${e.message}")
-            }
-        }
-    }
-
-    fun restoreAll(onComplete: (Boolean, String?) -> Unit = { _, _ -> }) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            onComplete(false, "Usuario no autenticado")
-            return
-        }
-
-        var successCount = 0
-        var errorMessage: String? = null
-        val totalCollections = 3
-
-        fun checkComplete() {
-            successCount++
-            if (successCount == totalCollections) {
-                onComplete(errorMessage == null, errorMessage)
-            }
-        }
-
-        // Restaurar usuarios
-        firestore.collection("usuarios_data").document(uid).collection("usuarios")
-            .get().addOnSuccessListener { result ->
-                scope.launch {
-                    try {
-                        val lista = result.toObjects(Usuario::class.java)
-                        usuarioDao.clearAll()
-                        usuarioDao.insertAll(lista)
-                        checkComplete()
-                    } catch (e: Exception) {
-                        errorMessage = "Error restaurando usuarios: ${e.message}"
-                        checkComplete()
-                    }
-                }
-            }.addOnFailureListener {
-                errorMessage = "Error obteniendo usuarios: ${it.message}"
-                checkComplete()
+            val usuariosEliminados = usuariosRemotos.filterNot { id -> usuariosLocales.any { it.id == id } }
+            Log.d("FirestoreBackup", "Usuarios eliminados: $usuariosEliminados")
+            usuariosEliminados.forEach {
+                usuariosRef.document(it).delete().await()
+                Log.d("FirestoreBackup", "Usuario eliminado en Firestore: $it")
             }
 
-        // Restaurar membresías
-        firestore.collection("usuarios_data").document(uid).collection("membresias")
-            .get().addOnSuccessListener { result ->
-                scope.launch {
-                    try {
-                        val lista = result.toObjects(Membresia::class.java)
-                        membresiaDao.clearAll()
-                        membresiaDao.insertAll(lista)
-                        checkComplete()
-                    } catch (e: Exception) {
-                        errorMessage = "Error restaurando membresías: ${e.message}"
-                        checkComplete()
-                    }
-                }
-            }.addOnFailureListener {
-                errorMessage = "Error obteniendo membresías: ${it.message}"
-                checkComplete()
+            usuariosLocales.forEach {
+                usuariosRef.document(it.id).set(it, SetOptions.merge()).await()
+                Log.d("FirestoreBackup", "Usuario respaldado: ${it.id}")
             }
 
-        // Restaurar inscripciones
-        firestore.collection("usuarios_data").document(uid).collection("inscripciones")
-            .get().addOnSuccessListener { result ->
-                scope.launch {
-                    try {
-                        val lista = result.toObjects(Inscripcion::class.java)
-                        inscripcionDao.clearAll()
-                        inscripcionDao.insertAll(lista)
-                        checkComplete()
-                    } catch (e: Exception) {
-                        errorMessage = "Error restaurando inscripciones: ${e.message}"
-                        checkComplete()
-                    }
-                }
-            }.addOnFailureListener {
-                errorMessage = "Error obteniendo inscripciones: ${it.message}"
-                checkComplete()
-            }
-    }
+            // === Membresías ===
+            val membresiasRef = firestore.collection("usuarios_data").document(uid).collection("membresias")
+            val membresiasRemotas = membresiasRef.get().await().documents.map { it.id }
 
-    suspend fun backupAllWithResult(): Boolean {
-        return suspendCancellableCoroutine { continuation ->
-            backupAll { success, _ ->
-                continuation.resume(success)
+            val membresiasEliminadas = membresiasRemotas.filterNot { id -> membresiasLocales.any { it.id == id } }
+            Log.d("FirestoreBackup", "Membresías eliminadas: $membresiasEliminadas")
+            membresiasEliminadas.forEach {
+                membresiasRef.document(it).delete().await()
+                Log.d("FirestoreBackup", "Membresía eliminada en Firestore: $it")
             }
+
+            membresiasLocales.forEach {
+                membresiasRef.document(it.id).set(it, SetOptions.merge()).await()
+                Log.d("FirestoreBackup", "Membresía respaldada: ${it.id}")
+            }
+
+            // === Inscripciones ===
+            val inscripcionesRef = firestore.collection("usuarios_data").document(uid).collection("inscripciones")
+            val inscripcionesRemotas = inscripcionesRef.get().await().documents.map { it.id }
+
+            val inscripcionesEliminadas = inscripcionesRemotas.filterNot { id -> inscripcionesLocales.any { it.id == id } }
+            Log.d("FirestoreBackup", "Inscripciones eliminadas: $inscripcionesEliminadas")
+            inscripcionesEliminadas.forEach {
+                inscripcionesRef.document(it).delete().await()
+                Log.d("FirestoreBackup", "Inscripción eliminada en Firestore: $it")
+            }
+
+            inscripcionesLocales.forEach {
+                inscripcionesRef.document(it.id).set(it, SetOptions.merge()).await()
+                Log.d("FirestoreBackup", "Inscripción respaldada: ${it.id}")
+            }
+
+            Log.d("FirestoreBackup", "Respaldo completado correctamente.")
+            true
+
+        } catch (e: Exception) {
+            Log.e("FirestoreBackup", "Error durante el respaldo: ${e.localizedMessage}", e)
+            false
         }
     }
 
-    suspend fun restoreAllWithResult(): Boolean {
-        return suspendCancellableCoroutine { continuation ->
-            restoreAll { success, _ ->
-                continuation.resume(success)
-            }
+
+
+    suspend fun restoreAll(): Boolean = withContext(Dispatchers.IO) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@withContext false
+
+        return@withContext try {
+            val usuariosSnap = firestore.collection("usuarios_data").document(uid).collection("usuarios").get().await()
+            val membresiasSnap = firestore.collection("usuarios_data").document(uid).collection("membresias").get().await()
+            val inscripcionesSnap = firestore.collection("usuarios_data").document(uid).collection("inscripciones").get().await()
+
+            val usuarios = usuariosSnap.toObjects(Usuario::class.java)
+            val membresias = membresiasSnap.toObjects(Membresia::class.java)
+            val inscripciones = inscripcionesSnap.toObjects(Inscripcion::class.java)
+
+            usuarioDao.clearAll()
+            usuarioDao.insertAll(usuarios)
+
+            membresiaDao.clearAll()
+            membresiaDao.insertAll(membresias)
+
+            inscripcionDao.clearAll()
+            inscripcionDao.insertAll(inscripciones)
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
-    suspend fun syncAllDevicesData(uid: String): Boolean {
-        return try {
-            // 1. Primero subir nuestros datos
-            val backupSuccess = backupAllWithResult()
-            if (!backupSuccess) return false
+    suspend fun backupAllWithResult(): Boolean = backupAll()
 
-            // 2. Luego descargar y mezclar datos de otros dispositivos
-            val otherDevicesData = firestore.collection("usuarios_data")
-                .get()
-                .await()
+    suspend fun restoreAllWithResult(): Boolean = restoreAll()
 
-            otherDevicesData.documents.forEach { deviceDoc ->
-                if (deviceDoc.id != uid) {
-                    // Usuarios
-                    firestore.collection("usuarios_data")
-                        .document(deviceDoc.id)
-                        .collection("usuarios")
-                        .get()
-                        .await()
-                        .let { usuarioDao.insertAll(it.toObjects(Usuario::class.java)) }
+    suspend fun syncAllDevicesData(uid: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            // Paso 1: Respaldar datos locales al Firestore
+            if (!backupAll()) return@withContext false
 
-                    // Membresías
-                    firestore.collection("usuarios_data")
-                        .document(deviceDoc.id)
-                        .collection("membresias")
-                        .get()
-                        .await()
-                        .let { membresiaDao.insertAll(it.toObjects(Membresia::class.java)) }
+            // Paso 2: Descargar datos de otros dispositivos
+            val allDevices = firestore.collection("usuarios_data").get().await()
 
-                    // Inscripciones
-                    firestore.collection("usuarios_data")
-                        .document(deviceDoc.id)
-                        .collection("inscripciones")
-                        .get()
-                        .await()
-                        .let { inscripcionDao.insertAll(it.toObjects(Inscripcion::class.java)) }
+            for (deviceDoc in allDevices.documents) {
+                val deviceUid = deviceDoc.id
+                if (deviceUid == uid) continue
+
+                // === Usuarios ===
+                val usuariosRemotos = firestore.collection("usuarios_data")
+                    .document(deviceUid).collection("usuarios")
+                    .get().await().toObjects(Usuario::class.java)
+
+                val usuariosLocales = usuarioDao.getAllUsuariosSinFlow().associateBy { it.id }
+                val nuevosUsuarios = usuariosRemotos.filter {
+                    it.id !in usuariosLocales || it.lastUpdated > (usuariosLocales[it.id]?.lastUpdated ?: 0L)
                 }
+                usuarioDao.insertAll(nuevosUsuarios)
+
+                // === Membresías ===
+                val membresiasRemotas = firestore.collection("usuarios_data")
+                    .document(deviceUid).collection("membresias")
+                    .get().await().toObjects(Membresia::class.java)
+
+                val membresiasLocales = membresiaDao.getAllSinFlow().associateBy { it.id }
+                val nuevasMembresias = membresiasRemotas.filter {
+                    it.id !in membresiasLocales || it.lastUpdated > (membresiasLocales[it.id]?.lastUpdated ?: 0L)
+                }
+                membresiaDao.insertAll(nuevasMembresias)
+
+                // === Inscripciones ===
+                val inscripcionesRemotas = firestore.collection("usuarios_data")
+                    .document(deviceUid).collection("inscripciones")
+                    .get().await().toObjects(Inscripcion::class.java)
+
+                val inscripcionesLocales = inscripcionDao.getAllSinFlow().associateBy { it.id }
+                val nuevasInscripciones = inscripcionesRemotas.filter {
+                    it.id !in inscripcionesLocales || it.lastUpdated > (inscripcionesLocales[it.id]?.lastUpdated ?: 0L)
+                }
+                inscripcionDao.insertAll(nuevasInscripciones)
             }
+
             true
         } catch (e: Exception) {
             e.printStackTrace()

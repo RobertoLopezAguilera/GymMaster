@@ -40,7 +40,7 @@ import java.time.temporal.ChronoUnit
 
 @Composable
 fun AsignarMembresiaScreen(
-    usuarioId: Int,
+    usuarioId: String,
     navController: NavController,
     viewModel: MembresiasViewModel = viewModel(),
     inscripcionViewModel: InscripcionViewModel = viewModel()
@@ -113,7 +113,7 @@ fun AsignarMembresiaScreen(
                                             pagado = true
                                         )
 
-                                        inscripcionViewModel.insertarInscripcion(inscripcionActualizada)
+                                        inscripcionViewModel.actualizarIncripcion(inscripcionActualizada)
                                         Toast.makeText(context, "Inscripción actualizada y extendida", Toast.LENGTH_SHORT).show()
                                     }
 

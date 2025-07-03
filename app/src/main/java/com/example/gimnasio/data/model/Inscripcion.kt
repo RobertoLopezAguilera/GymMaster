@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "inscripciones",
@@ -14,11 +15,12 @@ import androidx.room.PrimaryKey
     indices = [Index("idUsuario"), Index("idMembresia")]
 )
 data class Inscripcion(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val idUsuario: Int = 0,
-    val idMembresia: Int = 0,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val idUsuario: String = "",
+    val idMembresia: String = "",
     val fechaPago: String = "",
     val fechaVencimiento: String = "",
-    val pagado: Boolean = false
+    val pagado: Boolean = false,
+    val lastUpdated: Long = System.currentTimeMillis()
 )
 

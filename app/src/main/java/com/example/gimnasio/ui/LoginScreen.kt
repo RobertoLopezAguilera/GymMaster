@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 
 class LoginActivity : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
+
     private lateinit var firebaseAuth: FirebaseAuth
     private val RC_SIGN_IN = 100
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -88,63 +89,63 @@ class LoginActivity : ComponentActivity() {
     private fun handleUserLoggedIn(user: FirebaseUser, sharedPreferences: SharedPreferences) {
         sharedPreferences.edit().putString("USER_EMAIL", user.email).apply()
 
+        val restoredKey = "USER_DATA_RESTORED_${user.uid}"
+        val wasRestored = sharedPreferences.getBoolean(restoredKey, false)
+
         scope.launch {
             try {
-                // Mostrar progreso
-                Toast.makeText(
-                    this@LoginActivity,
-                    "Verificando tus datos...",
-                    Toast.LENGTH_SHORT
-                ).show()
+                if (!wasRestored) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Verificando tus datos por primera vez...",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
-                // Verificar y restaurar datos
-                val db = AppDatabase.getDatabase(applicationContext)
-                val syncService = FirestoreSyncService(
-                    db.usuarioDao(),
-                    db.membresiaDao(),
-                    db.inscripcionDao()
-                )
+                    val db = AppDatabase.getDatabase(applicationContext)
+                    val syncService = FirestoreSyncService(
+                        db.usuarioDao(),
+                        db.membresiaDao(),
+                        db.inscripcionDao()
+                    )
 
-                // Verificar datos en Firestore
-                val hasData = withContext(Dispatchers.IO) {
-                    syncService.checkUserDataExists(user.uid)
-                }
+                    val hasData = withContext(Dispatchers.IO) {
+                        syncService.checkUserDataExists(user.uid)
+                    }
 
-                if (hasData) {
-                    withContext(Dispatchers.Main) {
+                    if (hasData) {
                         Toast.makeText(
                             this@LoginActivity,
                             "Restaurando tus datos...",
                             Toast.LENGTH_SHORT
                         ).show()
+
+                        withContext(Dispatchers.IO) {
+                            syncService.restoreAllWithResult()
+                        }
                     }
 
-                    // Restaurar datos
-                    withContext(Dispatchers.IO) {
-                        syncService.restoreAllWithResult()
-                    }
+                    // Marca que ya se restauraron datos para este usuario
+                    sharedPreferences.edit().putBoolean(restoredKey, true).apply()
                 }
 
-                // Programar worker y redirigir
+                // Ya sea por primera vez o no, programa el respaldo automático y entra al sistema
                 AutoBackupWorker.schedulePeriodicWork(this@LoginActivity)
                 startActivity(Intent(this@LoginActivity, MainScreenActivity::class.java))
                 finish()
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Error al cargar datos: ${e.localizedMessage}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    // Redirigir a pesar del error
-                    startActivity(Intent(this@LoginActivity, MainScreenActivity::class.java))
-                    finish()
-                }
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Error al cargar datos: ${e.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
+                startActivity(Intent(this@LoginActivity, MainScreenActivity::class.java))
+                finish()
             }
         }
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

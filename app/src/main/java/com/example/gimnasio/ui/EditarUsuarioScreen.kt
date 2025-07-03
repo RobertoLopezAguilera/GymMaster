@@ -55,13 +55,13 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarUsuarioScreen(
-    usuarioId: Int,
+    usuarioId: String,
     navController: NavController,
     viewModel: UsuarioDetalleViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val usuario by viewModel.getUsuario(usuarioId).collectAsState(initial = null)
+    val usuario by viewModel.getUsuario(usuarioId.toString()).collectAsState(initial = null)
 
     // Estados para los campos del formulario
     var nombre by remember { mutableStateOf("") }
@@ -96,7 +96,7 @@ fun EditarUsuarioScreen(
                 onClick = {
                     if (nombre.isNotBlank() && genero.isNotBlank()) {
                         val updatedUsuario = Usuario(
-                            id = usuarioId,
+                            id = usuarioId.toString(),
                             nombre = nombre,
                             genero = genero,
                             edad = edad.toIntOrNull() ?: 0,

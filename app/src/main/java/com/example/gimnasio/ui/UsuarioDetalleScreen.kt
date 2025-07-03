@@ -76,12 +76,12 @@ import java.time.temporal.ChronoUnit
 
 @Composable
 fun UsuarioDetalleScreen(
-    usuarioId: Int,
+    usuarioId: String,
     navController: NavController,
     viewModel: UsuarioDetalleViewModel = viewModel()
 ) {
-    val usuario by viewModel.getUsuario(usuarioId).collectAsState(initial = null)
-    val inscripcion by viewModel.getInscripcion(usuarioId).collectAsState(initial = null)
+    val usuario by viewModel.getUsuario(usuarioId.toString()).collectAsState(initial = null)
+    val inscripcion by viewModel.getInscripcion(usuarioId.toString()).collectAsState(initial = null)
     val membresiaFlow = inscripcion?.idMembresia?.let { viewModel.getMembresia(it) }
     val membresiaState = membresiaFlow?.collectAsState(initial = null)
     val membresia = membresiaState?.value
@@ -486,7 +486,7 @@ fun UsuarioDetalleScreen(
 
                 viewModel.insertarInscripcion(
                     Inscripcion(
-                        idUsuario = usuarioId,
+                        idUsuario = usuarioId.toString(),
                         idMembresia = membresia.id,
                         fechaPago = fechaActual,
                         fechaVencimiento = nuevaFechaVencimiento,
@@ -524,7 +524,7 @@ fun UsuarioDetalleScreen(
                 TextButton(
                     onClick = {
                         showDialog = false
-                        viewModel.eliminarUsuarioConTodo(usuarioId) {
+                        viewModel.eliminarUsuarioConTodo(usuarioId.toString()) {
                             navController.popBackStack()
                         }
                     },

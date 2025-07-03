@@ -43,11 +43,11 @@ import com.example.gimnasio.viewmodel.MembresiasViewModel
 
 @Composable
 fun EditarMembresiaScreen(
-    membresiaId: Int,
+    membresiaId: String,
     navController: NavHostController,
     viewModel: MembresiasViewModel = viewModel()
 ) {
-    val membresia by viewModel.obtenerMembresiaPorId(membresiaId).collectAsState(initial = null)
+    val membresia by viewModel.obtenerMembresiaPorId(membresiaId.toString()).collectAsState(initial = null)
     var tipo by remember { mutableStateOf("") }
     var costo by remember { mutableStateOf("") }
     var duracion by remember { mutableStateOf("") }

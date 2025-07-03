@@ -13,13 +13,13 @@ interface InscripcionDao {
     fun getAllSinFlow(): List<Inscripcion>
 
     @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY idUsuario DESC")
-    fun getByUsuario(usuarioId: Int): Flow<List<Inscripcion>>
+    fun getByUsuario(usuarioId: String): Flow<List<Inscripcion>>
 
     @Query("SELECT COUNT(*) FROM inscripciones")
     suspend fun getCount(): Int
 
-    @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY id DESC LIMIT 1")
-    fun getByUsuarioId(usuarioId: Int): Flow<Inscripcion?>
+    @Query("SELECT * FROM inscripciones WHERE idUsuario = :usuarioId ORDER BY fechaVencimiento DESC LIMIT 1")
+    fun getByUsuarioId(usuarioId: String): Flow<Inscripcion?>
 
     @Query("SELECT * FROM inscripciones WHERE strftime('%Y', fechaPago) = :año")
     fun getInscripcionesPorAño(año: String): Flow<List<Inscripcion>>
@@ -57,6 +57,6 @@ interface InscripcionDao {
     suspend fun delete(inscripcion: Inscripcion)
 
     @Query("DELETE FROM inscripciones WHERE idUsuario = :usuarioId")
-    suspend fun eliminarPorUsuario(usuarioId: Int)
+    suspend fun eliminarPorUsuario(usuarioId: String)
 
 }

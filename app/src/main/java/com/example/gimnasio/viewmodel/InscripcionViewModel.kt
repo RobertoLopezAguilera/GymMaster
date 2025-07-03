@@ -27,16 +27,18 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
     private val inscripcionDao = AppDatabase.getDatabase(application).inscripcionDao()
     private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
     private val membresiaDao = AppDatabase.getDatabase(application).membresiaDao()
+
     fun insertarInscripcion(inscripcion: Inscripcion) {
         viewModelScope.launch {
-            if (inscripcion.id == 0) {
-                inscripcionDao.insert(inscripcion)
-            } else {
-                inscripcionDao.update(inscripcion)
-            }
+            inscripcionDao.insert(inscripcion)
         }
     }
 
+    fun actualizarIncripcion(inscripcion: Inscripcion){
+        viewModelScope.launch {
+            inscripcionDao.update(inscripcion)
+        }
+    }
     fun getInscripcionesPorFiltro(filtro: String, tipo: FilterType): Flow<List<Inscripcion>> {
         return when (tipo) {
             FilterType.MONTH -> inscripcionDao.getInscripcionesPorMes(filtro)
@@ -51,11 +53,11 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
 
     val membresias: Flow<List<Membresia>> = membresiaDao.getAll()
 
-    fun obtenerInscripcionPorUsuario(usuarioId: Int): Flow<Inscripcion?> {
+    fun obtenerInscripcionPorUsuario(usuarioId: String): Flow<Inscripcion?> {
         return inscripcionDao.getByUsuarioId(usuarioId)
     }
 
-    fun obtenerrUsuarioPorInscripcion(usuarioId: Int): Flow<Usuario?> {
+    fun obtenerrUsuarioPorInscripcion(usuarioId: String): Flow<Usuario?> {
         return usuarioDao.getUsuarioPorId(usuarioId)
     }
 
@@ -63,7 +65,7 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         return inscripcionDao.getAll()
     }
 
-    fun getByUsuario(usuarioId: Int): Flow<List<Inscripcion>> {
+    fun getByUsuario(usuarioId: String): Flow<List<Inscripcion>> {
         return inscripcionDao.getByUsuario(usuarioId)
     }
 
@@ -172,7 +174,7 @@ class InscripcionViewModel(application: Application) : AndroidViewModel(applicat
         return inscripcionDao.obtenerInscripcionesPorFechaPago(fecha.toString())
     }
 
-    fun obtenerUltimaInscripcion(usuarioId: Int): Flow<Inscripcion?> {
+    fun obtenerUltimaInscripcion(usuarioId: String): Flow<Inscripcion?> {
         return inscripcionDao.getByUsuarioId(usuarioId)
     }
 

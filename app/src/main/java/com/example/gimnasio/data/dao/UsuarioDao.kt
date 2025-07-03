@@ -14,14 +14,14 @@ interface UsuarioDao {
     suspend fun getCount(): Int
 
     @Query("SELECT * FROM usuarios WHERE id = :usuarioId LIMIT 1")
-    suspend fun getByIdDirecto(usuarioId: Int): Usuario?
+    suspend fun getByIdDirecto(usuarioId: String): Usuario?
 
 
     @Query("SELECT * FROM usuarios")
     fun getUsuariosFlow(): Flow<List<Usuario>>
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
-    fun getUsuarioPorId(id: Int): Flow<Usuario?>
+    fun getUsuarioPorId(id: String): Flow<Usuario?>
 
     @Query("SELECT * FROM usuarios")
     fun getAllUsuarios(): Flow<List<Usuario>>
@@ -45,7 +45,7 @@ interface UsuarioDao {
     suspend fun delete(usuario: Usuario)
 
     @Query("DELETE FROM usuarios WHERE id = :id")
-    suspend fun eliminarPorId(id: Int)
+    suspend fun eliminarPorId(id: String)
 
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion = :fecha")
     fun obtenerInscripcionesPorFechaInscripcion(fecha: String): Flow<List<Usuario>>

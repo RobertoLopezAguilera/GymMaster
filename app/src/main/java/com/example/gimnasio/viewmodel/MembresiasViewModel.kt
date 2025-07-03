@@ -32,7 +32,7 @@ class MembresiasViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun eliminarMembresia(membresiaID: Int) {
+    fun eliminarMembresia(membresiaID: String) {
         viewModelScope.launch {
             val membresia = membresiaDao.getById(membresiaID).firstOrNull()
             membresia?.let {
@@ -41,7 +41,7 @@ class MembresiasViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun eliminarMembresiaPorId(id: Int) {
+    fun eliminarMembresiaPorId(id: String) {
         viewModelScope.launch {
             val membresia = membresiaDao.getById(id).firstOrNull()
             membresia?.let {
@@ -50,7 +50,7 @@ class MembresiasViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun obtenerMembresiaPorId(id: Int): Flow<Membresia?> {
+    fun obtenerMembresiaPorId(id: String): Flow<Membresia?> {
         return membresiaDao.getById(id)
     }
 

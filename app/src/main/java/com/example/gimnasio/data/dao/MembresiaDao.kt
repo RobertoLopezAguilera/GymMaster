@@ -13,7 +13,7 @@ interface MembresiaDao {
     fun getAllSinFlow(): List<Membresia>
 
     @Query("SELECT * FROM membresias WHERE id = :id")
-    fun getById(id: Int): Flow<Membresia?>
+    fun getById(id: String): Flow<Membresia?>
 
     @Query("SELECT COUNT(*) FROM membresias")
     suspend fun getCount(): Int

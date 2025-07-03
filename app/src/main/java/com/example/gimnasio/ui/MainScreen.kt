@@ -349,37 +349,47 @@ fun MainScreen() {
                 composable("agregar_usuario") {
                     AgregarUsuarioScreen(navController = navController)
                 }
-                composable("editar_usuario/{usuarioId}") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull()
-                    id?.let {
-                        EditarUsuarioScreen(usuarioId = it, navController = navController)
-                    }
+                composable("editar_usuario/{usuarioId}",
+                    arguments = listOf(navArgument("usuarioId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("usuarioId") ?: return@composable
+                    EditarUsuarioScreen(usuarioId = id, navController = navController)
                 }
-                composable("usuario_detalle/{usuarioId}") { backStackEntry ->
-                    backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull()?.let { id ->
-                        UsuarioDetalleScreen(usuarioId = id, navController = navController)
-                    }
+
+                composable("usuario_detalle/{usuarioId}",
+                    arguments = listOf(navArgument("usuarioId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("usuarioId") ?: return@composable
+                    UsuarioDetalleScreen(usuarioId = id, navController = navController)
                 }
-                composable("asignar_membresia/{usuarioId}") { backStackEntry ->
-                    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: return@composable
+
+                composable("asignar_membresia/{usuarioId}",
+                    arguments = listOf(navArgument("usuarioId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: return@composable
                     AsignarMembresiaScreen(usuarioId = usuarioId, navController = navController)
                 }
-                composable("historial_usuario/{usuarioId}") { backStackEntry ->
-                    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: return@composable
+
+                composable("historial_usuario/{usuarioId}",
+                    arguments = listOf(navArgument("usuarioId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: return@composable
                     HistorialUsuarioScreen(usuarioId = usuarioId, navController = navController)
                 }
+
                 composable("agregar_membresia") {
                     AgregarMembresiaScreen(navController = navController)
                 }
                 composable("inscripciones_lista") {
                     InscripcionesScreen(navController = navController)
                 }
-                composable("editar_membresia/{id}") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-                    id?.let {
-                        EditarMembresiaScreen(membresiaId = it, navController = navController)
-                    }
+                composable("editar_membresia/{id}",
+                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("id") ?: return@composable
+                    EditarMembresiaScreen(membresiaId = id, navController = navController)
                 }
+
                 composable("perfil") {
                     PerfilScreen(navController = navController)
                 }

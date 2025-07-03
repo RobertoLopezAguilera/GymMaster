@@ -54,12 +54,12 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistorialUsuarioScreen(
-    usuarioId: Int,
+    usuarioId: String,
     viewModel: InscripcionViewModel = viewModel(),
     navController: NavHostController
 ) {
     // Obtener todas las inscripciones del usuario
-    val inscripciones by viewModel.getByUsuario(usuarioId).collectAsState(initial = emptyList())
+    val inscripciones by viewModel.getByUsuario(usuarioId.toString()).collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
