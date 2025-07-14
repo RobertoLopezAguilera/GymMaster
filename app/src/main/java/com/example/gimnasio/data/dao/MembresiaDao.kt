@@ -24,6 +24,9 @@ interface MembresiaDao {
     @Update
     suspend fun update(membresia: Membresia)
 
+    @Query("DELETE FROM membresias WHERE id =:id")
+    suspend fun deleteByIds(id:List<String>)
+
     @Delete
     suspend fun delete(membresia: Membresia)
 
@@ -33,4 +36,6 @@ interface MembresiaDao {
     @Query("DELETE FROM membresias")
     suspend fun clearAll()
 
+    @Query("SELECT * FROM membresias WHERE lastUpdated > :ts")
+    suspend fun getUpdatedSince(ts: Long): List<Membresia>
 }

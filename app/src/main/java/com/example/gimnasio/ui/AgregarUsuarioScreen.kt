@@ -287,7 +287,8 @@ fun AgregarUsuarioScreen(
                         edad = edad.toIntOrNull() ?: 0,
                         peso = peso.toDoubleOrNull() ?: 0.0,
                         experiencia = experiencia,
-                        fechaInscripcion = hoy.toString()
+                        fechaInscripcion = hoy.toString(),
+                        lastUpdated = System.currentTimeMillis()
                     )
                     viewModel.insertarUsuario(usuario)
                     navController.popBackStack()

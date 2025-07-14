@@ -33,15 +33,12 @@ interface InscripcionDao {
     @Query("DELETE FROM inscripciones")
     suspend fun clearAll()
 
-//    @Query("SELECT * FROM inscripciones WHERE fechaPago = :fecha")
-//    fun obtenerInscripcionesPorFechaPago(fecha: String): Flow<List<Inscripcion>>
+    @Query("DELETE FROM inscripciones WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
 
     @Query("SELECT * FROM inscripciones WHERE fechaPago = :fecha AND id IN ( SELECT MAX(id) " +
             "FROM inscripciones WHERE fechaPago = :fecha GROUP BY idUsuario)")
     fun obtenerInscripcionesPorFechaPago(fecha: String): Flow<List<Inscripcion>>
-
-//    @Query("SELECT * FROM inscripciones WHERE fechaVencimiento = :fecha")
-//    fun obtenerInscripcionesPorFechaVencimiento(fecha: String): Flow<List<Inscripcion>>
 
     @Query("SELECT * FROM inscripciones WHERE fechaVencimiento = :fecha AND id IN (SELECT MAX(id) " +
             "FROM inscripciones WHERE fechaVencimiento = :fecha GROUP BY idUsuario)")
@@ -59,4 +56,6 @@ interface InscripcionDao {
     @Query("DELETE FROM inscripciones WHERE idUsuario = :usuarioId")
     suspend fun eliminarPorUsuario(usuarioId: String)
 
+    @Query("SELECT * FROM inscripciones WHERE lastUpdated > :ts")
+    suspend fun getUpdatedSince(ts: Long): List<Inscripcion>
 }

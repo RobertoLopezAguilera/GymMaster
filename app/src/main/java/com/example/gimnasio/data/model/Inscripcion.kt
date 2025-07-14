@@ -15,12 +15,13 @@ import java.util.UUID
     indices = [Index("idUsuario"), Index("idMembresia")]
 )
 data class Inscripcion(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey override val id: String = UUID.randomUUID().toString(),
     val idUsuario: String = "",
     val idMembresia: String = "",
     val fechaPago: String = "",
     val fechaVencimiento: String = "",
     val pagado: Boolean = false,
-    val lastUpdated: Long = System.currentTimeMillis()
-)
+    override val lastUpdated: Long = System.currentTimeMillis()
+) : FirestoreSyncable
+
 

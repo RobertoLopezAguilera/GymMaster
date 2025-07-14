@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.gimnasio.data.dao.*
 import com.example.gimnasio.data.model.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Database(
     entities = [Usuario::class, Membresia::class, Inscripcion::class],
@@ -31,6 +33,13 @@ abstract class AppDatabase : RoomDatabase() {
                 ).build()
                 INSTANCE = instance
                 instance
+            }
+        }
+        suspend fun <T> runInTransaction(block: suspend () -> T): T {
+            return withContext(Dispatchers.IO) {
+                runInTransaction {
+                    block()
+                }
             }
         }
     }

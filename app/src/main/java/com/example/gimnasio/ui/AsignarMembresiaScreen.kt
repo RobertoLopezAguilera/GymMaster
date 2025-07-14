@@ -92,6 +92,7 @@ fun AsignarMembresiaScreen(
                                             idMembresia = membresia.id,
                                             fechaPago = hoy.toString(),
                                             fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                            lastUpdated = System.currentTimeMillis(),
                                             pagado = true
                                         )
                                         inscripcionViewModel.insertarInscripcion(nuevaInscripcion)
@@ -110,6 +111,7 @@ fun AsignarMembresiaScreen(
                                             idMembresia = membresia.id,
                                             fechaPago = hoy.toString(),
                                             fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                            lastUpdated = System.currentTimeMillis(),
                                             pagado = true
                                         )
 
@@ -130,6 +132,7 @@ fun AsignarMembresiaScreen(
                                     idMembresia = membresia.id,
                                     fechaPago = hoy.toString(),
                                     fechaVencimiento = nuevaFechaVencimiento.toString(),
+                                    lastUpdated = System.currentTimeMillis(),
                                     pagado = true
                                 )
                                 inscripcionViewModel.insertarInscripcion(nuevaInscripcion)

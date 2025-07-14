@@ -1,7 +1,6 @@
 package com.example.gimnasio.data.dao
 
 import androidx.room.*
-import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.data.model.Usuario
 import kotlinx.coroutines.flow.Flow
 
@@ -45,6 +44,9 @@ interface UsuarioDao {
     suspend fun delete(usuario: Usuario)
 
     @Query("DELETE FROM usuarios WHERE id = :id")
+    suspend fun deleteByIds(id: List<String>)
+
+    @Query("DELETE FROM usuarios WHERE id = :id")
     suspend fun eliminarPorId(id: String)
 
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion = :fecha")
@@ -65,4 +67,7 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE fechaInscripcion LIKE :año || '%'")
     fun getUsuariosPorAño(año: String): Flow<List<Usuario>>
+
+    @Query("SELECT * FROM usuarios WHERE lastUpdated > :ts")
+    suspend fun getUpdatedSince(ts: Long): List<Usuario>
 }

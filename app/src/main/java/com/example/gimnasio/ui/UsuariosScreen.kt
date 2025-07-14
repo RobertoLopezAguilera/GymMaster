@@ -86,7 +86,7 @@ fun UsuariosScreen(
                     onClick = {
                         navController.navigate("usuario_detalle/${usuario.id}")
                     },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }
@@ -156,7 +156,7 @@ fun UsuarioCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Avatar del usuario con iniciales
@@ -212,27 +212,10 @@ fun UsuarioCard(
                     // Genero
                     InfoChip(
                         icon = painterResource(id = R.drawable.ic_gender),
-                        text = usuario.genero ?: "Genero. no especificada",
-                        modifier = Modifier.padding(end = 4.dp)
+                        text = usuario.genero ?: "No especificada",
+                        modifier = Modifier.padding(end = 2.dp)
                     )
-
-                    // Experiencia
-                    InfoChip(
-                        icon = painterResource(id = R.drawable.ic_pesas),
-                        text = usuario.experiencia ?: "Exp. no especificada",
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-
                 }
-            }
-
-            // Indicador de estado (si es necesario)
-            if (usuario.id.toString() == "") {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color.Red, shape = CircleShape)
-                )
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -242,7 +225,7 @@ fun UsuarioCard(
                 imageVector = Icons.Default.ArrowForward,
                 contentDescription = "Ver detalle",
                 tint = GymMediumBlue,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(12.dp)
             )
         }
     }

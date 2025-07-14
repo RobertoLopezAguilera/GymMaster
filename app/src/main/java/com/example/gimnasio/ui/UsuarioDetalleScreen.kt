@@ -490,6 +490,7 @@ fun UsuarioDetalleScreen(
                         idMembresia = membresia.id,
                         fechaPago = fechaActual,
                         fechaVencimiento = nuevaFechaVencimiento,
+                        lastUpdated = System.currentTimeMillis(),
                         pagado = true
                     )
                 )
@@ -524,7 +525,7 @@ fun UsuarioDetalleScreen(
                 TextButton(
                     onClick = {
                         showDialog = false
-                        viewModel.eliminarUsuarioConTodo(usuarioId.toString()) {
+                        viewModel.eliminarUsuarioConTodo(usuarioId) {
                             navController.popBackStack()
                         }
                     },

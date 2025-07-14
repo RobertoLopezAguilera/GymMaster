@@ -96,13 +96,14 @@ fun EditarUsuarioScreen(
                 onClick = {
                     if (nombre.isNotBlank() && genero.isNotBlank()) {
                         val updatedUsuario = Usuario(
-                            id = usuarioId.toString(),
+                            id = usuarioId,
                             nombre = nombre,
                             genero = genero,
                             edad = edad.toIntOrNull() ?: 0,
                             peso = peso.toDoubleOrNull() ?: 0.0,
                             experiencia = experiencia,
-                            fechaInscripcion = fechaInscripcion
+                            fechaInscripcion = fechaInscripcion,
+                            lastUpdated = System.currentTimeMillis()
                         )
                         viewModel.actualizarUsuario(updatedUsuario)
                         Toast.makeText(context, "Usuario actualizado", Toast.LENGTH_SHORT).show()

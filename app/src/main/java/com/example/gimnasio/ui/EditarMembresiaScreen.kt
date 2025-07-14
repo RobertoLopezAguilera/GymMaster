@@ -232,7 +232,8 @@ fun EditarMembresiaScreen(
                                 membresia!!.copy(
                                     tipo = tipo,
                                     costo = costo.toDouble(),
-                                    duracionDias = duracion.toInt()
+                                    duracionDias = duracion.toInt(),
+                                    lastUpdated = System.currentTimeMillis()
                                 )
                             )
                             navController.popBackStack()

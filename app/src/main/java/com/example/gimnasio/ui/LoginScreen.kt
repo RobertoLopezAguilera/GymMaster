@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +38,7 @@ import com.example.gimnasio.R
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.db.FirestoreSyncService
 import com.example.gimnasio.ui.theme.*
-import com.example.gimnasio.worker.AutoBackupWorker
+//import com.example.gimnasio.worker.AutoBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,6 +48,13 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.gimnasio.worker.FirestoreSyncWorker
 
 class LoginActivity : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -105,8 +113,10 @@ class LoginActivity : ComponentActivity() {
                     val syncService = FirestoreSyncService(
                         db.usuarioDao(),
                         db.membresiaDao(),
-                        db.inscripcionDao()
+                        db.inscripcionDao(),
+                        applicationContext // o simplemente "this" si no estás dentro de una corrutina
                     )
+
 
                     val hasData = withContext(Dispatchers.IO) {
                         syncService.checkUserDataExists(user.uid)
@@ -128,8 +138,8 @@ class LoginActivity : ComponentActivity() {
                     sharedPreferences.edit().putBoolean(restoredKey, true).apply()
                 }
 
-                // Ya sea por primera vez o no, programa el respaldo automático y entra al sistema
-                AutoBackupWorker.schedulePeriodicWork(this@LoginActivity)
+                // 🔁 Programa la sincronización automática cada 3 horas
+                scheduleSyncWorker(applicationContext)
                 startActivity(Intent(this@LoginActivity, MainScreenActivity::class.java))
                 finish()
 
@@ -175,6 +185,24 @@ class LoginActivity : ComponentActivity() {
         super.onDestroy()
         scope.cancel()
     }
+}
+
+private fun scheduleSyncWorker(context: Context) {
+    val syncRequest = PeriodicWorkRequestBuilder<FirestoreSyncWorker>(
+        1, TimeUnit.HOURS // cada 3 horas
+    )
+        .setConstraints(
+            Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED) // solo si hay internet
+                .build()
+        )
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "SyncWorker",
+        ExistingPeriodicWorkPolicy.UPDATE,
+        syncRequest
+    )
 }
 
 @Composable
@@ -237,7 +265,31 @@ fun LoginScreen(
                 value = viewModel.password,
                 onValueChange = viewModel::onPasswordChange,
                 label = { Text("Contraseña", color = GymDarkBlue) },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (viewModel.isPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = viewModel::togglePasswordVisibility) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (viewModel.isPasswordVisible) {
+                                    R.drawable.ic_visibility
+                                } else {
+                                    R.drawable.ic_visibility_off
+                                }
+                            ),
+                            contentDescription = if (viewModel.isPasswordVisible) {
+                                "Ocultar contraseña"
+                            } else {
+                                "Mostrar contraseña"
+                            },
+                            tint = GymDarkBlue
+                        )
+                    }
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
                     unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
@@ -374,6 +426,13 @@ class LoginViewModel : ViewModel() {
 
     fun onEmailChange(value: String) { _email = value.trim() }
     fun onPasswordChange(value: String) { _password = value.trim() }
+
+    var isPasswordVisible by mutableStateOf(false)
+        private set
+
+    fun togglePasswordVisibility() {
+        isPasswordVisible = !isPasswordVisible
+    }
 
     fun login(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
         if (_isLoading) return

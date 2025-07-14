@@ -6,13 +6,14 @@ import java.util.UUID
 
 @Entity(tableName = "usuarios")
 data class Usuario(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey override val id: String = UUID.randomUUID().toString(),
     val nombre: String = "",
     val genero: String = "",
     val edad: Int = 0,
     val peso: Double = 0.0,
     val experiencia: String = "",
     val fechaInscripcion: String = "",
-    val lastUpdated: Long = System.currentTimeMillis()
-)
+    override val lastUpdated: Long = System.currentTimeMillis()
+) : FirestoreSyncable
+
 
