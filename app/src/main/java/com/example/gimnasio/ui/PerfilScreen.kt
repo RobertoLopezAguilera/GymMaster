@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -51,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.data.AppDatabase
 import com.example.gimnasio.data.db.FirestoreSyncService
 import com.google.firebase.auth.FirebaseAuth
@@ -82,11 +84,27 @@ fun PerfilScreen(navController: NavHostController) {
     // Estado para mostrar diálogo
     var mostrarDialogoEstadisticas by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        bottomBar = {
+            // Banner como bottom bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
+            ) {
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())  // <-- Esto permite el desplazamiento
-                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
                 .background(GymLightGray)
                 .padding(16.dp)
         ) {

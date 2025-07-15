@@ -1,9 +1,33 @@
 <resources>
-    <string name="app_name">Calabozo GYM</string>
+    <string name="app_name">GYM Manager</string>
     <string name="default_web_client_id">4316124608499-gk3q1objlokng5k34q4r147ljii2109p.apps.googleusercontent.com</string>
 
     <string name="facebook_app_id">711366088419856</string>
     <string name="fb_login_protocol_scheme">fb711366088419856</string>
     <string name="facebook_client_token">419d39885d8e655b42028aeb04ef0240</string>
+    <string name="terms_and_conditions_title" translatable="false">Términos y Condiciones de Uso</string>
+    <string name="terms_and_conditions_content" translatable="false">
+    <![CDATA[
+    <h2>Términos y Condiciones de Gym Manager</h2>
+
+    <p>Al utilizar esta aplicación, aceptas los siguientes términos y condiciones:</p>
+
+    <h3>1. Uso de la Aplicación</h3>
+    <p>Esta aplicación está diseñada para gestionar tu gimnasio y solo debe ser utilizada para este propósito.</p>
+
+    <h3>2. Privacidad</h3>
+    <p>Respetamos tu privacidad. Los datos personales que nos proporciones serán utilizados únicamente para brindarte el servicio y no serán compartidos con terceros sin tu consentimiento.</p>
+
+    <h3>3. Responsabilidad</h3>
+    <p>El usuario es responsable de mantener la confidencialidad de su cuenta y contraseña.</p>
+
+    <h3>4. Modificaciones</h3>
+    <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Se te notificará sobre cambios importantes.</p>
+
+    <p>Al hacer clic en \"Aceptar\", confirmas que has leído, comprendido y aceptado estos términos y condiciones.</p>
+    ]]>
+</string>
+    <string name="accept_terms" translatable="false">Aceptar</string>
+    <string name="decline_terms" translatable="false">Rechazar</string>
 
 </resources>

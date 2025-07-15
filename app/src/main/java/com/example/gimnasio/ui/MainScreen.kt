@@ -103,7 +103,7 @@ fun MainScreen() {
                             tint = GymWhite
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Calabozo Gym",
+                        Text("Gym Manager",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 color = GymWhite,
                                 fontWeight = FontWeight.Bold

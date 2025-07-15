@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -26,8 +27,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,9 +55,10 @@ import com.example.gimnasio.data.model.Membresia
 import com.example.gimnasio.ui.theme.*
 import com.example.gimnasio.viewmodel.MembresiasViewModel
 import com.example.gimnasio.R
+import com.example.gimnasio.admob.AdBanner
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MembresiasScreen(
     viewModel: MembresiasViewModel = viewModel(),
@@ -64,158 +69,177 @@ fun MembresiasScreen(
     var selectedMembresia by remember { mutableStateOf<Membresia?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GymLightGray)
-    ) {
-        if (membresias.isEmpty()) {
-            Column(
+    Scaffold(
+        bottomBar = {
+            // Banner fijo en la parte inferior
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_membresia),
-                    contentDescription = "Sin membresías",
-                    tint = GymMediumGray,
-                    modifier = Modifier.size(64.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "No hay membresías registradas",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = GymDarkGray
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Presiona el botón + para agregar una nueva",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = GymMediumGray
-                    ),
-                    textAlign = TextAlign.Center
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
                 )
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                itemsIndexed(membresias) { index, membresia ->
-                    MembresiaCard(
-                        membresia = membresia,
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .combinedClickable(
-                                onClick = {},// opcion
-                                onLongClick = {
-                                    selectedMembresia = membresia
-                                    showMenu = true
-                                }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(GymLightGray)
+        ) {
+            if (membresias.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_membresia),
+                        contentDescription = "Sin membresías",
+                        tint = GymMediumGray,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No hay membresías registradas",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = GymDarkGray
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Presiona el botón + para agregar una nueva",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = GymMediumGray
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    itemsIndexed(membresias) { index, membresia ->
+                        MembresiaCard(
+                            membresia = membresia,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .combinedClickable(
+                                    onClick = {},// opcion
+                                    onLongClick = {
+                                        selectedMembresia = membresia
+                                        showMenu = true
+                                    }
+                                )
+                                .animateItemPlacement()
+                        )
+                    }
+                }
+            }
+
+            // Menú contextual
+            if (showMenu && selectedMembresia != null) {
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(GymWhite)
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Editar",
+                                style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkBlue)
                             )
-                            .animateItemPlacement()
+                        },
+                        onClick = {
+                            navController.navigate("editar_membresia/${selectedMembresia!!.id}")
+                            showMenu = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_edit_membresia),
+                                contentDescription = "Editar",
+                                tint = GymMediumBlue
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Eliminar",
+                                style = MaterialTheme.typography.bodyMedium.copy(color = GymBrightRed)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            showDeleteDialog = true
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = GymBrightRed
+                            )
+                        }
                     )
                 }
             }
-        }
 
-        // Menú contextual
-        if (showMenu && selectedMembresia != null) {
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-                modifier = Modifier.background(GymWhite)
-            ) {
-                DropdownMenuItem(
+            // Diálogo de confirmación para eliminar
+            if (showDeleteDialog && selectedMembresia != null) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = {
+                        Text(
+                            "Confirmar eliminación",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                color = GymBrightRed,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    },
                     text = {
                         Text(
-                            "Editar",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkBlue)
+                            "¿Estás seguro de eliminar la membresía ${selectedMembresia?.tipo}?",
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     },
-                    onClick = {
-                        navController.navigate("editar_membresia/${selectedMembresia!!.id}")
-                        showMenu = false
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.eliminarMembresia(selectedMembresia!!.id)
+                                showDeleteDialog = false
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = GymBrightRed
+                            )
+                        ) {
+                            Text("ELIMINAR", fontWeight = FontWeight.Bold)
+                        }
                     },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_edit_membresia),
-                            contentDescription = "Editar",
-                            tint = GymMediumBlue
-                        )
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            "Eliminar",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = GymBrightRed)
-                        )
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteDialog = false },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = GymMediumBlue
+                            )
+                        ) {
+                            Text("CANCELAR")
+                        }
                     },
-                    onClick = {
-                        showMenu = false
-                        showDeleteDialog = true
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = GymBrightRed
-                        )
-                    }
+                    containerColor = GymWhite,
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
-        }
-
-        // Diálogo de confirmación para eliminar
-        if (showDeleteDialog && selectedMembresia != null) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = {
-                    Text(
-                        "Confirmar eliminación",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            color = GymBrightRed,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                },
-                text = {
-                    Text(
-                        "¿Estás seguro de eliminar la membresía ${selectedMembresia?.tipo}?",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.eliminarMembresia(selectedMembresia!!.id)
-                            showDeleteDialog = false
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = GymBrightRed
-                        )
-                    ) {
-                        Text("ELIMINAR", fontWeight = FontWeight.Bold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showDeleteDialog = false },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = GymMediumBlue
-                        )
-                    ) {
-                        Text("CANCELAR")
-                    }
-                },
-                containerColor = GymWhite,
-                shape = RoundedCornerShape(12.dp)
-            )
         }
     }
 }

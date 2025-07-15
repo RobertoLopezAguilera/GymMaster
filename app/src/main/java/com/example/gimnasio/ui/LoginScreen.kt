@@ -12,9 +12,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.work.Constraints
@@ -212,6 +213,7 @@ fun LoginScreen(
     viewModel: LoginViewModel
 ) {
     val context = LocalContext.current
+    var showTermsDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -223,6 +225,29 @@ fun LoginScreen(
                 modifier = Modifier.align(Alignment.Center),
                 color = GymDarkBlue
             )
+        }
+        if (showTermsDialog) {
+            TermsAndConditionsDialog(
+                onAccept = {
+                    showTermsDialog = false
+                    // Aquí puedes guardar que el usuario aceptó los términos
+                    // Por ejemplo en SharedPreferences
+                    val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                    prefs.edit().putBoolean("TERMS_ACCEPTED", true).apply()
+                },
+                onDecline = {
+                    showTermsDialog = false
+                    Toast.makeText(context, "Debes aceptar los términos para continuar", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+        LaunchedEffect(Unit) {
+            val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+            val termsAccepted = prefs.getBoolean("TERMS_ACCEPTED", false)
+
+            if (!termsAccepted) {
+                showTermsDialog = true
+            }
         }
 
         Column(

@@ -46,6 +46,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavHostController
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.data.model.Usuario
 import com.example.gimnasio.ui.theme.*
 
@@ -90,6 +91,7 @@ fun UsuariosScreen(
                 )
             }
         }
+        AdBanner()
     }
 }
 
