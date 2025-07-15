@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.gimnasio.R
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.ui.theme.GymBrightRed
 import com.example.gimnasio.ui.theme.GymDarkBlue
 import com.example.gimnasio.ui.theme.GymDarkGray
@@ -115,87 +116,111 @@ fun InscripcionesScreen(
                     )
                 )
             }
+        },
+        bottomBar = {
+            // Banner en la parte inferior
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
+            ) {
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
         }
     ) { paddingValues ->
         if (inscripciones.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().background(GymLightGray),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(GymLightGray)
+                    .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
                 Text("No hay registros de pago")
             }
         } else {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(GymLightGray)
                     .padding(paddingValues)
             ) {
-                items(inscripcionesFiltradas.size) { index ->
-                    val inscripcion = inscripcionesFiltradas[index]
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = GymWhite),
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.3f))
-                    ) {
-                        // Obtenemos el usuario directamente del mapa
-                        val usuario = usuariosMap[inscripcion.idUsuario]
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f) // Ocupa todo el espacio disponible
+                        .padding(bottom = 8.dp) // Espacio para el banner
+                ) {
+                    items(inscripcionesFiltradas.size) { index ->
+                        val inscripcion = inscripcionesFiltradas[index]
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = GymWhite),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.3f))
+                        ) {
+                            // Obtenemos el usuario directamente del mapa
+                            val usuario = usuariosMap[inscripcion.idUsuario]
 
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = usuario?.nombre ?: "Nombre no especificado",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = GymDarkBlue
-                                )
-                            )
-
-                            // Resto del código de la tarjeta...
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_check_green),
-                                label = "Vencimiento",
-                                value = formatearFecha(inscripcion.fechaVencimiento),
-                                valueColor = if (inscripcion.pagado) GymDarkBlue else GymBrightRed
-                            )
-
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_payments),
-                                label = "Último pago",
-                                value = formatearFecha(inscripcion.fechaPago),
-                                valueColor = if (inscripcion.pagado) GymDarkBlue else GymBrightRed
-                            )
-
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "Estado:",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = GymDarkGray
+                                    text = usuario?.nombre ?: "Nombre no especificado",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = GymDarkBlue
                                     )
                                 )
-                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                                val hoy = LocalDate.now()
-                                val fechaVencimiento = LocalDate.parse(inscripcion.fechaVencimiento, formatter)
-                                val estaActiva = !fechaVencimiento.isBefore(hoy)
 
-                                Chip(
-                                    text = if (estaActiva) "ACTIVO" else "VENCIDO",
-                                    backgroundColor = if (estaActiva) GymSecondary.copy(alpha = 0.2f)
-                                    else GymBrightRed.copy(alpha = 0.2f),
-                                    textColor = if (estaActiva) GymSecondary else GymBrightRed,
-                                    icon = if (estaActiva) Icons.Default.Check else Icons.Default.Close
+                                // Resto del código de la tarjeta...
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_check_green),
+                                    label = "Vencimiento",
+                                    value = formatearFecha(inscripcion.fechaVencimiento),
+                                    valueColor = if (inscripcion.pagado) GymDarkBlue else GymBrightRed
                                 )
+
+                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_payments),
+                                    label = "Último pago",
+                                    value = formatearFecha(inscripcion.fechaPago),
+                                    valueColor = if (inscripcion.pagado) GymDarkBlue else GymBrightRed
+                                )
+
+                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Estado:",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = GymDarkGray
+                                        )
+                                    )
+                                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                                    val hoy = LocalDate.now()
+                                    val fechaVencimiento = LocalDate.parse(inscripcion.fechaVencimiento, formatter)
+                                    val estaActiva = !fechaVencimiento.isBefore(hoy)
+
+                                    Chip(
+                                        text = if (estaActiva) "ACTIVO" else "VENCIDO",
+                                        backgroundColor = if (estaActiva) GymSecondary.copy(alpha = 0.2f)
+                                        else GymBrightRed.copy(alpha = 0.2f),
+                                        textColor = if (estaActiva) GymSecondary else GymBrightRed,
+                                        icon = if (estaActiva) Icons.Default.Check else Icons.Default.Close
+                                    )
+                                }
                             }
                         }
                     }
@@ -203,46 +228,6 @@ fun InscripcionesScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        label = { Text("Buscar Usuario...") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Buscar",
-                tint = GymDarkBlue
-            )
-        },
-        trailingIcon = {
-            if (query.isNotBlank()) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Limpiar búsqueda",
-                    modifier = Modifier.clickable { onQueryChange("") },
-                    tint = GymDarkBlue
-                )
-            }
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(16.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = GymWhite,
-            unfocusedContainerColor = GymWhite,
-            disabledContainerColor = GymWhite,
-            focusedIndicatorColor = GymBrightRed,
-            unfocusedIndicatorColor = GymMediumBlue,
-        ),
-        modifier = modifier
-    )
 }
 
 @Composable

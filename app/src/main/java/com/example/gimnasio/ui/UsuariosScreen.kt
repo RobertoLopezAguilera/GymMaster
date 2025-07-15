@@ -96,7 +96,7 @@ fun UsuariosScreen(
 }
 
 @Composable
-private fun SearchBar(
+fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier

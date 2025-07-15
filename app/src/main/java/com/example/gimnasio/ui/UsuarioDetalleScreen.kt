@@ -38,13 +38,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +72,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.example.gimnasio.R
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.data.model.Inscripcion
 import com.example.gimnasio.ui.theme.*
 import com.example.gimnasio.viewmodel.UsuarioDetalleViewModel
@@ -74,6 +80,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UsuarioDetalleScreen(
     usuarioId: String,
@@ -87,235 +94,115 @@ fun UsuarioDetalleScreen(
     val membresia = membresiaState?.value
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
+    var showChangeMembershipDialog by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GymLightGray)
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Header con avatar y nombre
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Avatar del usuario
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(GymMediumBlue, GymDarkBlue)
-                                ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "${usuario?.nombre?.firstOrNull() ?: 'U'}",
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                color = GymWhite,
-                                fontWeight = FontWeight.Bold
-                            )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Detalle de Usuario", color = GymDarkBlue) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Regresar",
+                            tint = GymDarkBlue
                         )
                     }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = GymLightGray,
+                    titleContentColor = GymDarkBlue,
+                    navigationIconContentColor = GymDarkBlue
+                )
+            )
+        },
+        bottomBar = {
+            // Banner en la parte inferior
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
+            ) {
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GymLightGray)
+                .padding(paddingValues)
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column {
-                        usuario?.let { user ->
+                    // Header con avatar y nombre
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Avatar del usuario
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(GymMediumBlue, GymDarkBlue)
+                                    ),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = user.nombre ?: "Nombre no especificado",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = GymDarkBlue
-                                )
-                            )
-                            Text(
-                                text = "Miembro desde: ${formatearFecha(user.fechaInscripcion) ?: "Fecha desconocida"}",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = GymDarkGray
+                                text = "${usuario?.nombre?.firstOrNull() ?: 'U'}",
+                                style = MaterialTheme.typography.displaySmall.copy(
+                                    color = GymWhite,
+                                    fontWeight = FontWeight.Bold
                                 )
                             )
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                // Sección de información personal
-                Text(
-                    text = "Información Personal",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = GymDarkBlue,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = GymWhite),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.1f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        usuario?.let { user ->
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_calendario),
-                                label = "Edad",
-                                value = "${user.edad ?: "?"} años"
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
-
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_weight),
-                                label = "Peso",
-                                value = "${user.peso ?: "?"} kg"
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
-
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_gender),
-                                label = "Género",
-                                value = user.genero ?: "No especificado"
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
-
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_membresia),
-                                label = "Experiencia",
-                                value = user.experiencia ?: "No especificada"
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Sección de inscripción
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                val hoy = LocalDate.now()
-
-                // Calcular si está pagado basado en la fecha
-                val estaPagado = inscripcion?.fechaVencimiento?.let { fechaVenc ->
-                    val fechaVencimiento = LocalDate.parse(fechaVenc, formatter)
-                    !fechaVencimiento.isBefore(hoy)
-                } ?: false
-
-                // Cambiar los colores basados en el estado calculado
-                val borderColor = if (estaPagado) GymSecondary else GymBrightRed
-
-                Text(
-                    text = "Suscripción",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = GymDarkBlue,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = GymWhite),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    border = BorderStroke(1.dp, borderColor.copy(alpha = 0.3f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        inscripcion?.let {
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_check_green),
-                                label = "Vencimiento",
-                                value = formatearFecha(it.fechaVencimiento),
-                                valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
-
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_payments),
-                                label = "Último pago",
-                                value = formatearFecha(it.fechaPago),
-                                valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                        Column {
+                            usuario?.let { user ->
                                 Text(
-                                    text = "Estado:",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                    text = user.nombre ?: "Nombre no especificado",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = GymDarkBlue
+                                    )
+                                )
+                                Text(
+                                    text = "Miembro desde: ${formatearFecha(user.fechaInscripcion) ?: "Fecha desconocida"}",
+                                    style = MaterialTheme.typography.bodySmall.copy(
                                         color = GymDarkGray
                                     )
                                 )
-                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                                val hoy = LocalDate.now()
-
-                                val fechaVencimiento = LocalDate.parse(it.fechaVencimiento, formatter)
-
-                                val estaActiva = !fechaVencimiento.isBefore(hoy) // activa si vence hoy o después
-
-                                Chip(
-                                    text = if (estaActiva) "ACTIVO" else "VENCIDO",
-                                    backgroundColor = if (estaActiva) GymSecondary.copy(alpha = 0.2f)
-                                    else GymBrightRed.copy(alpha = 0.2f),
-                                    textColor = if (estaActiva) GymSecondary else GymBrightRed,
-                                    icon = if (estaActiva) Icons.Default.Check else Icons.Default.Close
-                                )
                             }
-                        } ?: Text(
-                            "Sin suscripción activa",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkGray),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    // Sección de información personal
+                    Text(
+                        text = "Información Personal",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = GymDarkBlue,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-                // Sección de membresía
-                Text(
-                    text = "Tipo de Membresía",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = GymDarkBlue,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                membresia?.let {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -324,185 +211,339 @@ fun UsuarioDetalleScreen(
                         border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.1f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_membresia),
-                                label = "Tipo",
-                                value = it.tipo ?: "No especificado"
-                            )
+                            usuario?.let { user ->
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_calendario),
+                                    label = "Edad",
+                                    value = "${user.edad ?: "?"} años"
+                                )
 
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
 
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_price),
-                                label = "Precio",
-                                value = "${it.costo ?: "?"} MXN"
-                            )
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_weight),
+                                    label = "Peso",
+                                    value = "${user.peso ?: "?"} kg"
+                                )
 
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = GymLightGray.copy(alpha = 0.5f)
-                            )
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
 
-                            InfoRow(
-                                icon = painterResource(id = R.drawable.ic_duration),
-                                label = "Duración",
-                                value = "${it.duracionDias ?: "?"} días"
-                            )
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_gender),
+                                    label = "Género",
+                                    value = user.genero ?: "No especificado"
+                                )
+
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
+
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_membresia),
+                                    label = "Experiencia",
+                                    value = user.experiencia ?: "No especificada"
+                                )
+                            }
                         }
                     }
-                } ?: Text(
-                    "No tiene membresía asignada",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkGray),
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
 
-                Spacer(modifier = Modifier.height(80.dp)) // Espacio para los FABs
-            }
-        }
+                    Spacer(modifier = Modifier.height(24.dp))
 
-        var showChangeMembershipDialog by remember { mutableStateOf(false) }
+                    // Sección de inscripción
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    val hoy = LocalDate.now()
 
-        // Diálogo para confirmar cambio de membresía
-        if (showChangeMembershipDialog) {
-            AlertDialog(
-                onDismissRequest = { showChangeMembershipDialog = false },
-                title = {
-                    Text("Membresía activa",
+                    // Calcular si está pagado basado en la fecha
+                    val estaPagado = inscripcion?.fechaVencimiento?.let { fechaVenc ->
+                        val fechaVencimiento = LocalDate.parse(fechaVenc, formatter)
+                        !fechaVencimiento.isBefore(hoy)
+                    } ?: false
+
+                    // Cambiar los colores basados en el estado calculado
+                    val borderColor = if (estaPagado) GymSecondary else GymBrightRed
+
+                    Text(
+                        text = "Suscripción",
                         style = MaterialTheme.typography.titleLarge.copy(
                             color = GymDarkBlue,
-                            fontWeight = FontWeight.Bold
-                        ))
-                },
-                text = {
-                    Text("El usuario ya tiene una membresía activa. " +
-                            "¿Estás seguro que deseas cambiar de membresía?",
-                        style = MaterialTheme.typography.bodyMedium)
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showChangeMembershipDialog = false
-                            navController.navigate("asignar_membresia/$usuarioId")
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = GymBrightRed
-                        )
-                    ) {
-                        Text("CAMBIAR", fontWeight = FontWeight.Bold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showChangeMembershipDialog = false },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = GymMediumBlue
-                        )
-                    ) {
-                        Text("CANCELAR")
-                    }
-                },
-                containerColor = GymWhite,
-                shape = RoundedCornerShape(12.dp)
-            )
-        }
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-        FabMenu(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp),
-            onEditarClick = { navController.navigate("editar_usuario/$usuarioId") },
-            onAsignarMembresiaClick = {
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                val hoy = LocalDate.now()
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = GymWhite),
+                        elevation = CardDefaults.cardElevation(4.dp),
+                        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.3f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            inscripcion?.let {
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_check_green),
+                                    label = "Vencimiento",
+                                    value = formatearFecha(it.fechaVencimiento),
+                                    valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
+                                )
 
-                inscripcion?.let { insc ->
-                    val fechaVencimiento = insc.fechaVencimiento?.let {
-                        try {
-                            LocalDate.parse(it, formatter)
-                        } catch (e: Exception) {
-                            null
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
+
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_payments),
+                                    label = "Último pago",
+                                    value = formatearFecha(it.fechaPago),
+                                    valueColor = if (estaPagado) GymDarkBlue else GymBrightRed
+                                )
+
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Estado:",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = GymDarkGray
+                                        )
+                                    )
+                                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                                    val hoy = LocalDate.now()
+
+                                    val fechaVencimiento = LocalDate.parse(it.fechaVencimiento, formatter)
+
+                                    val estaActiva = !fechaVencimiento.isBefore(hoy) // activa si vence hoy o después
+
+                                    Chip(
+                                        text = if (estaActiva) "ACTIVO" else "VENCIDO",
+                                        backgroundColor = if (estaActiva) GymSecondary.copy(alpha = 0.2f)
+                                        else GymBrightRed.copy(alpha = 0.2f),
+                                        textColor = if (estaActiva) GymSecondary else GymBrightRed,
+                                        icon = if (estaActiva) Icons.Default.Check else Icons.Default.Close
+                                    )
+                                }
+                            } ?: Text(
+                                "Sin suscripción activa",
+                                style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkGray),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
 
-                    if (fechaVencimiento != null && !fechaVencimiento.isBefore(hoy)) {
-                        // Mostrar diálogo de confirmación
-                        showChangeMembershipDialog = true
-                    } else {
-                        // No hay membresía activa o está vencida
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Sección de membresía
+                    Text(
+                        text = "Tipo de Membresía",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = GymDarkBlue,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    membresia?.let {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = GymWhite),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            border = BorderStroke(1.dp, GymMediumBlue.copy(alpha = 0.1f))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_membresia),
+                                    label = "Tipo",
+                                    value = it.tipo ?: "No especificado"
+                                )
+
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
+
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_price),
+                                    label = "Precio",
+                                    value = "${it.costo ?: "?"} MXN"
+                                )
+
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = GymLightGray.copy(alpha = 0.5f)
+                                )
+
+                                InfoRow(
+                                    icon = painterResource(id = R.drawable.ic_duration),
+                                    label = "Duración",
+                                    value = "${it.duracionDias ?: "?"} días"
+                                )
+                            }
+                        }
+                    } ?: Text(
+                        "No tiene membresía asignada",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = GymDarkGray),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(80.dp)) // Espacio para los FABs
+                }
+            }
+
+            FabMenu(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 60.dp) // Ajuste para el banner
+                    .padding(24.dp),
+                onEditarClick = { navController.navigate("editar_usuario/$usuarioId") },
+                onAsignarMembresiaClick = {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    val hoy = LocalDate.now()
+
+                    inscripcion?.let { insc ->
+                        val fechaVencimiento = insc.fechaVencimiento?.let {
+                            try {
+                                LocalDate.parse(it, formatter)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+
+                        if (fechaVencimiento != null && !fechaVencimiento.isBefore(hoy)) {
+                            // Mostrar diálogo de confirmación
+                            showChangeMembershipDialog = true
+                        } else {
+                            // No hay membresía activa o está vencida
+                            navController.navigate("asignar_membresia/$usuarioId")
+                        }
+                    } ?: run {
+                        // No hay inscripción
                         navController.navigate("asignar_membresia/$usuarioId")
                     }
-                } ?: run {
-                    // No hay inscripción
-                    navController.navigate("asignar_membresia/$usuarioId")
-                }
-            },
-            onPagarClick = {
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                val hoy = LocalDate.now()
+                },
+                onPagarClick = {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    val hoy = LocalDate.now()
 
-                if (membresia == null) {
-                    Toast.makeText(context, "No hay membresía asignada", Toast.LENGTH_SHORT).show()
-                    return@FabMenu
-                }
-
-                inscripcion?.let { insc ->
-                    val fechaVencimiento = LocalDate.parse(insc.fechaVencimiento, formatter)
-                    val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimiento)
-
-                    // Si faltan más de 7 días para vencer
-                    if (diasRestantes > 7) {
-                        Toast.makeText(
-                            context,
-                            "No puedes renovar. Faltan $diasRestantes días para vencimiento",
-                            Toast.LENGTH_LONG
-                        ).show()
+                    if (membresia == null) {
+                        Toast.makeText(context, "No hay membresía asignada", Toast.LENGTH_SHORT).show()
                         return@FabMenu
                     }
-                }
 
-                val fechaActual = hoy.toString()
-                val duracionDias = membresia.duracionDias ?: 30
+                    inscripcion?.let { insc ->
+                        val fechaVencimiento = LocalDate.parse(insc.fechaVencimiento, formatter)
+                        val diasRestantes = ChronoUnit.DAYS.between(hoy, fechaVencimiento)
 
-                // Nueva lógica para calcular fecha de vencimiento
-                val nuevaFechaVencimiento = if (inscripcion != null) {
-                    val fechaVencimientoActual = LocalDate.parse(inscripcion!!.fechaVencimiento, formatter)
-                    val diasAtraso = ChronoUnit.DAYS.between(fechaVencimientoActual, hoy)
+                        // Si faltan más de 7 días para vencer
+                        if (diasRestantes > 7) {
+                            Toast.makeText(
+                                context,
+                                "No puedes renovar. Faltan $diasRestantes días para vencimiento",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return@FabMenu
+                        }
+                    }
 
-                    if (diasAtraso > 0 && diasAtraso <= 7) {
-                        // Si está en período de gracia (vencido hace menos de 7 días)
-                        fechaVencimientoActual.plusDays(duracionDias.toLong()).toString()
+                    val fechaActual = hoy.toString()
+                    val duracionDias = membresia.duracionDias ?: 30
+
+                    // Nueva lógica para calcular fecha de vencimiento
+                    val nuevaFechaVencimiento = if (inscripcion != null) {
+                        val fechaVencimientoActual = LocalDate.parse(inscripcion!!.fechaVencimiento, formatter)
+                        val diasAtraso = ChronoUnit.DAYS.between(fechaVencimientoActual, hoy)
+
+                        if (diasAtraso > 0 && diasAtraso <= 7) {
+                            // Si está en período de gracia (vencido hace menos de 7 días)
+                            fechaVencimientoActual.plusDays(duracionDias.toLong()).toString()
+                        } else {
+                            // Si no está vencido o está vencido hace más de 7 días
+                            hoy.plusDays(duracionDias.toLong()).toString()
+                        }
                     } else {
-                        // Si no está vencido o está vencido hace más de 7 días
+                        // Si no hay inscripción previa
                         hoy.plusDays(duracionDias.toLong()).toString()
                     }
-                } else {
-                    // Si no hay inscripción previa
-                    hoy.plusDays(duracionDias.toLong()).toString()
-                }
 
-                viewModel.insertarInscripcion(
-                    Inscripcion(
-                        idUsuario = usuarioId.toString(),
-                        idMembresia = membresia.id,
-                        fechaPago = fechaActual,
-                        fechaVencimiento = nuevaFechaVencimiento,
-                        lastUpdated = System.currentTimeMillis(),
-                        pagado = true
+                    viewModel.insertarInscripcion(
+                        Inscripcion(
+                            idUsuario = usuarioId.toString(),
+                            idMembresia = membresia.id,
+                            fechaPago = fechaActual,
+                            fechaVencimiento = nuevaFechaVencimiento,
+                            lastUpdated = System.currentTimeMillis(),
+                            pagado = true
+                        )
                     )
-                )
-                Toast.makeText(context, "Pago registrado exitosamente", Toast.LENGTH_SHORT).show()
-            },
-            onHistorialClick = { navController.navigate("historial_usuario/$usuarioId") },
-            onEliminarClick = { showDialog = true }
-        )
-
+                    Toast.makeText(context, "Pago registrado exitosamente", Toast.LENGTH_SHORT).show()
+                },
+                onHistorialClick = { navController.navigate("historial_usuario/$usuarioId") },
+                onEliminarClick = { showDialog = true }
+            )
+        }
     }
 
-    // Diálogo de confirmación
+    // Diálogo para confirmar cambio de membresía
+    if (showChangeMembershipDialog) {
+        AlertDialog(
+            onDismissRequest = { showChangeMembershipDialog = false },
+            title = {
+                Text("Membresía activa",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        color = GymDarkBlue,
+                        fontWeight = FontWeight.Bold
+                    ))
+            },
+            text = {
+                Text("El usuario ya tiene una membresía activa. " +
+                        "¿Estás seguro que deseas cambiar de membresía?",
+                    style = MaterialTheme.typography.bodyMedium)
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showChangeMembershipDialog = false
+                        navController.navigate("asignar_membresia/$usuarioId")
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = GymBrightRed
+                    )
+                ) {
+                    Text("CAMBIAR", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showChangeMembershipDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = GymMediumBlue
+                    )
+                ) {
+                    Text("CANCELAR")
+                }
+            },
+            containerColor = GymWhite,
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
+    // Diálogo de confirmación para eliminar
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },

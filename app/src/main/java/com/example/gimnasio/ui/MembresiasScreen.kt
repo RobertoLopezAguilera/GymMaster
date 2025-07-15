@@ -78,11 +78,7 @@ fun MembresiasScreen(
                     .height(50.dp)
                     .background(GymLightGray)
             ) {
-                AdBanner(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                )
+                AdBanner()
             }
         }
     ) { innerPadding ->

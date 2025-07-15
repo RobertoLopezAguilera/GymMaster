@@ -4,10 +4,12 @@ import com.example.gimnasio.R
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +53,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.ui.theme.*
 
 @Composable
@@ -64,218 +67,236 @@ fun AgregarMembresiaScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GymLightGray)
-            .padding(horizontal = 24.dp)
-    ) {
-        // Formulario
+    Scaffold(
+        bottomBar = {
+            // Banner fijo en la parte inferior
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
+            ) {
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .background(GymLightGray)
+                .padding(innerPadding)
         ) {
-            // Card para el formulario
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = GymWhite),
-                elevation = CardDefaults.cardElevation(4.dp)
+            // Formulario
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                // Card para el formulario
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = GymWhite),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    // Campo Tipo
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Tipo de Membresía",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = GymDarkBlue,
-                                fontWeight = FontWeight.SemiBold
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        // Campo Tipo
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Tipo de Membresía",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = GymDarkBlue,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             )
-                        )
-                        OutlinedTextField(
-                            value = tipo,
-                            onValueChange = { tipo = it },
-                            placeholder = { Text("Ejemplo: Premium, Básica") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                focusedIndicatorColor = GymMediumBlue,
-                                unfocusedIndicatorColor = GymMediumGray,
-                            ),
-                            singleLine = true
-                        )
-                    }
+                            OutlinedTextField(
+                                value = tipo,
+                                onValueChange = { tipo = it },
+                                placeholder = { Text("Ejemplo: Premium, Básica") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    focusedIndicatorColor = GymMediumBlue,
+                                    unfocusedIndicatorColor = GymMediumGray,
+                                ),
+                                singleLine = true
+                            )
+                        }
 
-                    // Campo Costo
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Costo",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = GymDarkBlue,
-                                fontWeight = FontWeight.SemiBold
+                        // Campo Costo
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Costo",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = GymDarkBlue,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             )
-                        )
-                        OutlinedTextField(
-                            value = costo,
-                            onValueChange = {
-                                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) costo = it
-                            },
-                            placeholder = { Text("0.00") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                focusedIndicatorColor = GymMediumBlue,
-                                unfocusedIndicatorColor = GymMediumGray,
-                            ),
-                            singleLine = true,
-                            leadingIcon = {
-                                Text(
-                                    text = "$",
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = GymDarkBlue,
-                                        fontWeight = FontWeight.Bold
+                            OutlinedTextField(
+                                value = costo,
+                                onValueChange = {
+                                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) costo = it
+                                },
+                                placeholder = { Text("0.00") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    focusedIndicatorColor = GymMediumBlue,
+                                    unfocusedIndicatorColor = GymMediumGray,
+                                ),
+                                singleLine = true,
+                                leadingIcon = {
+                                    Text(
+                                        text = "$",
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = GymDarkBlue,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
-                                )
-                            },
-                            trailingIcon = {
-                                Text(
-                                    text = "MXN",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = GymDarkGray
+                                },
+                                trailingIcon = {
+                                    Text(
+                                        text = "MXN",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = GymDarkGray
+                                        )
                                     )
-                                )
-                            }
-                        )
-                    }
+                                }
+                            )
+                        }
 
-                    // Campo Duración
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Duración",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = GymDarkBlue,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
-                        OutlinedTextField(
-                            value = duracion,
-                            onValueChange = {
-                                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) duracion = it
-                            },
-                            placeholder = { Text("30") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
-                                focusedIndicatorColor = GymMediumBlue,
-                                unfocusedIndicatorColor = GymMediumGray,
-                            ),
-                            singleLine = true,
-                            trailingIcon = {
-                                Text(
-                                    text = "días",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = GymDarkGray
-                                    )
+                        // Campo Duración
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Duración",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = GymDarkBlue,
+                                    fontWeight = FontWeight.SemiBold
                                 )
-                            }
-                        )
+                            )
+                            OutlinedTextField(
+                                value = duracion,
+                                onValueChange = {
+                                    if (it.isEmpty() || it.matches(Regex("^\\d+$"))) duracion = it
+                                },
+                                placeholder = { Text("30") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
+                                    focusedIndicatorColor = GymMediumBlue,
+                                    unfocusedIndicatorColor = GymMediumGray,
+                                ),
+                                singleLine = true,
+                                trailingIcon = {
+                                    Text(
+                                        text = "días",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = GymDarkGray
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Botón de guardar
-        Button(
-            onClick = {
-                when {
-                    tipo.isBlank() -> {
-                        errorMessage = "Debes especificar un tipo de membresía"
-                        showErrorDialog = true
-                    }
-                    costo.isBlank() || costo.toDoubleOrNull() == null -> {
-                        errorMessage = "Ingresa un costo válido"
-                        showErrorDialog = true
-                    }
-                    duracion.isBlank() || duracion.toIntOrNull() == null -> {
-                        errorMessage = "Ingresa una duración válida en días"
-                        showErrorDialog = true
-                    }
-                    else -> {
-                        viewModel.insertarMembresia(
-                            Membresia(
-                                tipo = tipo,
-                                costo = costo.toDouble(),
-                                duracionDias = duracion.toInt(),
-                                lastUpdated = System.currentTimeMillis()
+            // Botón de guardar
+            Button(
+                onClick = {
+                    when {
+                        tipo.isBlank() -> {
+                            errorMessage = "Debes especificar un tipo de membresía"
+                            showErrorDialog = true
+                        }
+                        costo.isBlank() || costo.toDoubleOrNull() == null -> {
+                            errorMessage = "Ingresa un costo válido"
+                            showErrorDialog = true
+                        }
+                        duracion.isBlank() || duracion.toIntOrNull() == null -> {
+                            errorMessage = "Ingresa una duración válida en días"
+                            showErrorDialog = true
+                        }
+                        else -> {
+                            viewModel.insertarMembresia(
+                                Membresia(
+                                    tipo = tipo,
+                                    costo = costo.toDouble(),
+                                    duracionDias = duracion.toInt(),
+                                    lastUpdated = System.currentTimeMillis()
+                                )
                             )
-                        )
-                        navController.popBackStack()
+                            navController.popBackStack()
+                        }
                     }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp, top = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = GymMediumBlue,
-                contentColor = GymWhite
-            )
-        ) {
-            Text(
-                text = "Guardar Membresía",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp, top = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GymMediumBlue,
+                    contentColor = GymWhite
+                )
+            ) {
+                Text(
+                    text = "Guardar Membresía",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
+
+        // Diálogo de error
+        if (showErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { showErrorDialog = false },
+                title = {
+                    Text(
+                        "Datos incompletos",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = GymBrightRed,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        errorMessage,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showErrorDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = GymMediumBlue
+                        )
+                    ) {
+                        Text("Entendido", fontWeight = FontWeight.Bold)
+                    }
+                },
+                containerColor = GymWhite,
+                shape = RoundedCornerShape(16.dp)
             )
         }
-    }
-
-    // Diálogo de error
-    if (showErrorDialog) {
-        AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
-            title = {
-                Text(
-                    "Datos incompletos",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = GymBrightRed,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            },
-            text = {
-                Text(
-                    errorMessage,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showErrorDialog = false },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = GymMediumBlue
-                    )
-                ) {
-                    Text("Entendido", fontWeight = FontWeight.Bold)
-                }
-            },
-            containerColor = GymWhite,
-            shape = RoundedCornerShape(16.dp)
-        )
     }
 }
