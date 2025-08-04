@@ -186,7 +186,7 @@ fun MainScreen() {
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
-                        // Lógica de navegación o ajustes
+                        navController.navigate("perfil")
                     },
                     icon = {
                         Icon(

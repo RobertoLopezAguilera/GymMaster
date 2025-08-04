@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.example.gimnasio.R
+import com.example.gimnasio.admob.AdBanner
 import com.example.gimnasio.viewmodel.InscripcionViewModel
 import com.github.mikephil.charting.formatter.ValueFormatter
 import java.time.LocalDate
@@ -167,177 +168,203 @@ fun EstadisticasInscripcionesScreen(
             map.toList().sortedByDescending { it.second }
         }
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GymLightGray)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        // Título con botón de retroceso
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.size(24.dp)
+    Scaffold(
+        bottomBar = {
+            // Banner como bottom bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = "Volver atrás",
-                    tint = GymDarkBlue
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Estadísticas de Inscripciones",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = GymDarkBlue
-                ),
-                modifier = Modifier.weight(1f)
-            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Filtros de fecha (ahora afectan a todos los gráficos)
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Filtrar datos por:", color = GymDarkBlue)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                DropdownMenuFiltroTipo(filtroTipo) { filtroTipo = it }
-                Spacer(modifier = Modifier.width(8.dp))
-                DropdownMenuAño(filtroAño, añosDisponibles) { filtroAño = it }
-
-                if (filtroTipo == FilterType.MONTH) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    DropdownMenuMes(filtroMes, mesesMap) { filtroMes = it }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Tarjeta de resumen financiero
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = GymWhite),
-            modifier = Modifier.fillMaxWidth()
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .background(GymLightGray)
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Resumen financiero
-                Text("Resumen Financiero (${when(filtroTipo) {
-                    FilterType.YEAR -> "Año $filtroAño"
-                    FilterType.MONTH -> "${meses[filtroMes.toInt() - 1]} $filtroAño"
-                }})",
-                    style = MaterialTheme.typography.titleMedium.copy(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(GymLightGray)
+            ) {
+                // Título con botón de retroceso
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Volver atrás",
+                            tint = GymDarkBlue
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "Estadísticas de Inscripciones",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = GymDarkBlue
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Filtros de fecha (ahora afectan a todos los gráficos)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text("Filtrar datos por:", color = GymDarkBlue)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        DropdownMenuFiltroTipo(filtroTipo) { filtroTipo = it }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        DropdownMenuAño(filtroAño, añosDisponibles) { filtroAño = it }
+
+                        if (filtroTipo == FilterType.MONTH) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            DropdownMenuMes(filtroMes, mesesMap) { filtroMes = it }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Tarjeta de resumen financiero
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = GymWhite),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        // Resumen financiero
+                        Text(
+                            "Resumen Financiero (${
+                                when (filtroTipo) {
+                                    FilterType.YEAR -> "Año $filtroAño"
+                                    FilterType.MONTH -> "${meses[filtroMes.toInt() - 1]} $filtroAño"
+                                }
+                            })",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = GymDarkBlue,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Ingresos totales (inscripciones filtradas)
+                        InfoRow(
+                            label = "Ingresos totales:",
+                            value = "$${"%.2f".format(ingresosTotales)}",
+                            valueColor = GymGreen
+                        )
+
+                        // Total de inscripciones
+                        InfoRow(
+                            label = "Total inscripciones:",
+                            value = inscripcionesFiltradas.size.toString(),
+                            valueColor = GymDarkBlue
+                        )
+
+                        // Usuarios activos actuales
+                        InfoRow(
+                            label = "Usuarios activos:",
+                            value = totalInscripcionesActivas.toString(),
+                            valueColor = GymDarkBlue
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gráfico de ingresos mensuales
+                Text(
+                    text = "Ingresos por mes",
+                    style = MaterialTheme.typography.titleSmall.copy(
                         color = GymDarkBlue,
                         fontWeight = FontWeight.Bold
                     )
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Ingresos totales (inscripciones filtradas)
-                InfoRow(
-                    label = "Ingresos totales:",
-                    value = "$${"%.2f".format(ingresosTotales)}",
-                    valueColor = GymGreen
+
+                BarChartCard(
+                    data = ingresosPorMes,
+                    barColor = GymGreen,
+                    modifier = Modifier.height(300.dp),
+                    showValuesAsPercent = false
                 )
 
-                // Total de inscripciones
-                InfoRow(
-                    label = "Total inscripciones:",
-                    value = inscripcionesFiltradas.size.toString(),
-                    valueColor = GymDarkBlue
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gráfico de cantidad de inscripciones por mes
+                Text(
+                    text = "Inscripciones por mes",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = GymDarkBlue,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BarChartCard(
+                    data = totalInscripcionesPorMes,
+                    barColor = GymMediumBlue,
+                    modifier = Modifier.height(300.dp)
                 )
 
-                // Usuarios activos actuales
-                InfoRow(
-                    label = "Usuarios activos:",
-                    value = totalInscripcionesActivas.toString(),
-                    valueColor = GymDarkBlue
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gráfico de distribución de membresías
+                Text(
+                    text = "Distribución de membresías",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = GymDarkBlue,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BarChartMembresias(
+                    datos = distribucionMembresias,
+                    modifier = Modifier.height(250.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Gráfico de ingresos por tipo de membresía
+                Text(
+                    text = "Ingresos por tipo de membresía",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = GymDarkBlue,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BarChartIngresosMembresias(
+                    datos = ingresosPorMembresia.map { (tipo, monto) -> tipo to monto.toFloat() },
+                    modifier = Modifier.height(250.dp)
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Gráfico de ingresos mensuales
-        Text(
-            text = "Ingresos por mes",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-
-        BarChartCard(
-            data = ingresosPorMes,
-            barColor = GymGreen,
-            modifier = Modifier.height(300.dp),
-            showValuesAsPercent = false
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Gráfico de cantidad de inscripciones por mes
-        Text(
-            text = "Inscripciones por mes",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        BarChartCard(
-            data = totalInscripcionesPorMes,
-            barColor = GymMediumBlue,
-            modifier = Modifier.height(300.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Gráfico de distribución de membresías
-        Text(
-            text = "Distribución de membresías",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        BarChartMembresias(
-            datos = distribucionMembresias,
-            modifier = Modifier.height(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Gráfico de ingresos por tipo de membresía
-        Text(
-            text = "Ingresos por tipo de membresía",
-            style = MaterialTheme.typography.titleSmall.copy(
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        BarChartIngresosMembresias(
-            datos = ingresosPorMembresia.map { (tipo, monto) -> tipo to monto.toFloat() },
-            modifier = Modifier.height(250.dp)
-        )
     }
 }
 

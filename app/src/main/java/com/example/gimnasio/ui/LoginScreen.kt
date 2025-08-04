@@ -190,7 +190,7 @@ class LoginActivity : ComponentActivity() {
 
 private fun scheduleSyncWorker(context: Context) {
     val syncRequest = PeriodicWorkRequestBuilder<FirestoreSyncWorker>(
-        1, TimeUnit.HOURS // cada 3 horas
+        4, TimeUnit.HOURS // cada 3 horas
     )
         .setConstraints(
             Constraints.Builder()

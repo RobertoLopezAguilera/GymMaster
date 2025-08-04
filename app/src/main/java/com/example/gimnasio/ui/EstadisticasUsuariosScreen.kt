@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.gimnasio.R
+import com.example.gimnasio.admob.AdBanner
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
@@ -173,259 +174,292 @@ fun EstadisticasUsuariosScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GymLightGray)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        // Título con botón de retroceso
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+    Scaffold(
+        bottomBar = {
+            // Banner como bottom bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(GymLightGray)
+            ) {
+                AdBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GymLightGray)
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(16.dp)
         ) {
-            if (filtroGenero != null || filtroExperiencia != null) {
-                IconButton(
-                    onClick = {
-                        filtroGenero = null
-                        filtroExperiencia = null
-                    },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow_back),
-                        contentDescription = "Volver atrás",
-                        tint = GymDarkBlue
-                    )
+            // Título con botón de retroceso
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (filtroGenero != null || filtroExperiencia != null) {
+                    IconButton(
+                        onClick = {
+                            filtroGenero = null
+                            filtroExperiencia = null
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Volver atrás",
+                            tint = GymDarkBlue
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = when {
+                        filtroGenero != null -> "Estadísticas: ${filtroGenero.toString()}"
+                        filtroExperiencia != null -> "Estadísticas: ${filtroExperiencia.toString()}"
+                        else -> "Estadísticas de Usuarios"
+                    },
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = GymDarkBlue
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
             }
 
-            Text(
-                text = when {
-                    filtroGenero != null -> "Estadísticas: ${filtroGenero.toString()}"
-                    filtroExperiencia != null -> "Estadísticas: ${filtroExperiencia.toString()}"
-                    else -> "Estadísticas de Usuarios"
-                },
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = GymDarkBlue
-                ),
-                modifier = Modifier.weight(1f)
-            )
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Filtros
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Filtrar por:", color = GymDarkBlue)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        DropdownMenuFiltroTipo(filtroTipo) { filtroTipo = it }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        DropdownMenuAño(filtroAño, añosDisponibles) { filtroAño = it }
-                        if (filtroTipo == FilterType.MONTH) {
+            // Filtros
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Filtrar por:", color = GymDarkBlue)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            DropdownMenuFiltroTipo(filtroTipo) { filtroTipo = it }
                             Spacer(modifier = Modifier.width(8.dp))
-                            DropdownMenuMes(filtroMes, mesesMap) { filtroMes = it }
+                            DropdownMenuAño(filtroAño, añosDisponibles) { filtroAño = it }
+                            if (filtroTipo == FilterType.MONTH) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                DropdownMenuMes(filtroMes, mesesMap) { filtroMes = it }
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                    Text("Género:", color = GymDarkBlue)
-                    FiltroGenero(
-                        generoSeleccionado = filtroGenero,
-                        onGeneroSeleccionado = { filtroGenero = it }
-                    )
-                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                        Text("Género:", color = GymDarkBlue)
+                        FiltroGenero(
+                            generoSeleccionado = filtroGenero,
+                            onGeneroSeleccionado = { filtroGenero = it }
+                        )
+                    }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Experiencia:", color = GymDarkBlue)
-                    FiltroExperiencia(
-                        experienciaSeleccionada = filtroExperiencia,
-                        onExperienciaSeleccionada = { filtroExperiencia = it }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Tarjeta de resumen
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = GymWhite),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Total de usuarios
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Usuarios: ", color = GymDarkBlue)
-                    Text(
-                        usuariosFiltrados.size.toString(),
-                        style = MaterialTheme.typography.headlineSmall.copy(color = GymDarkBlue)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (filtroGenero != null || filtroExperiencia != null) {
-                        Text(
-                            "(${usuarios.size} total)",
-                            style = MaterialTheme.typography.bodySmall.copy(color = GymDarkBlue)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Experiencia:", color = GymDarkBlue)
+                        FiltroExperiencia(
+                            experienciaSeleccionada = filtroExperiencia,
+                            onExperienciaSeleccionada = { filtroExperiencia = it }
                         )
                     }
                 }
+            }
 
-                // Estadísticas de género (porcentajes)
-                if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Column {
-                        Text("Distribución por género:", style = MaterialTheme.typography.labelMedium,
-                            color = GymDarkBlue)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            estadisticasGenero.forEach { (genero, porcentaje) ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = genero.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = GymDarkBlue
-                                    )
-                                    Text(
-                                        text = "%.1f%%".format(porcentaje),
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = when (genero) {
-                                                Genero.MASCULINO -> GymMediumBlue
-                                                Genero.FEMENINO -> GymPink
-                                                Genero.OTRO -> Purple40
-                                            },
-                                            fontWeight = FontWeight.Bold
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Tarjeta de resumen
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = GymWhite),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Total de usuarios
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Usuarios: ", color = GymDarkBlue)
+                        Text(
+                            usuariosFiltrados.size.toString(),
+                            style = MaterialTheme.typography.headlineSmall.copy(color = GymDarkBlue)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (filtroGenero != null || filtroExperiencia != null) {
+                            Text(
+                                "(${usuarios.size} total)",
+                                style = MaterialTheme.typography.bodySmall.copy(color = GymDarkBlue)
+                            )
+                        }
+                    }
+
+                    // Estadísticas de género (porcentajes)
+                    if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Column {
+                            Text(
+                                "Distribución por género:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GymDarkBlue
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                estadisticasGenero.forEach { (genero, porcentaje) ->
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = genero.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = GymDarkBlue
                                         )
-                                    )
+                                        Text(
+                                            text = "%.1f%%".format(porcentaje),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = when (genero) {
+                                                    Genero.MASCULINO -> GymMediumBlue
+                                                    Genero.FEMENINO -> GymPink
+                                                    Genero.OTRO -> Purple40
+                                                },
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // Estadísticas de experiencia (porcentajes)
-                if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Column {
-                        Text("Distribución por experiencia:", style = MaterialTheme.typography.labelMedium,
-                            color = GymDarkBlue)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            estadisticasExperiencia.forEach { (experiencia, porcentaje) ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = experiencia.toString(),
-                                        color = GymDarkBlue,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                    Text(
-                                        text = "%.1f%%".format(porcentaje),
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = when (experiencia) {
-                                                Experiencia.PRINCIPIANTE -> GymGreen
-                                                Experiencia.INTERMEDIO -> GymYellow
-                                                Experiencia.AVANZADO -> GymOrange
-                                                Experiencia.MIXTO -> GymPurple
-                                            },
-                                            fontWeight = FontWeight.Bold
+                    // Estadísticas de experiencia (porcentajes)
+                    if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Column {
+                            Text(
+                                "Distribución por experiencia:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GymDarkBlue
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                estadisticasExperiencia.forEach { (experiencia, porcentaje) ->
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = experiencia.toString(),
+                                            color = GymDarkBlue,
+                                            style = MaterialTheme.typography.labelSmall
                                         )
-                                    )
+                                        Text(
+                                            text = "%.1f%%".format(porcentaje),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = when (experiencia) {
+                                                    Experiencia.PRINCIPIANTE -> GymGreen
+                                                    Experiencia.INTERMEDIO -> GymYellow
+                                                    Experiencia.AVANZADO -> GymOrange
+                                                    Experiencia.MIXTO -> GymPurple
+                                                },
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Gráfico de distribución por género (cantidad absoluta)
-        if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
-            Text(
-                text = "Distribución por Género",
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            BarChartGeneroCantidad(
-                datos = cantidadPorGenero.map { (genero, cantidad) -> genero to cantidad },
-                modifier = Modifier.height(200.dp),
-                onBarClick = { genero ->
-                    filtroGenero = genero
-                }
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
-        }
 
-        // Gráfico de distribución por experiencia (cantidad absoluta)
-        if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
-            Text(
-                text = "Distribución por Experiencia",
-                color = GymDarkBlue,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            // Gráfico de distribución por género (cantidad absoluta)
+            if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
+                Text(
+                    text = "Distribución por Género",
+                    color = GymDarkBlue,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-            BarChartExperienciaCantidad(
-                datos = cantidadPorExperiencia.map { (experiencia, cantidad) -> experiencia to cantidad },
-                modifier = Modifier.height(200.dp),
-                onBarClick = { experiencia ->
-                    filtroExperiencia = experiencia
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Gráfico de series temporales
-        Text(
-            text = if (filtroTipo == FilterType.MONTH) "Inscripciones por Día" else "Inscripciones por Mes",
-            color = GymDarkBlue,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        BarChartCard(
-            data = datosGraficaTemporal,
-            barColor = GymMediumBlue,
-            modifier = Modifier.height(300.dp),
-            onBarClick = { etiqueta ->
-                val fechaSeleccionada = when (filtroTipo) {
-                    FilterType.MONTH -> LocalDate.parse("$filtroAño-$filtroMes-${etiqueta.padStart(2, '0')}")
-                    FilterType.YEAR -> {
-                        val mesNum = meses.indexOfFirst { it.startsWith(etiqueta.take(3)) } + 1
-                        LocalDate.of(filtroAño.toInt(), mesNum, 1)
+                BarChartGeneroCantidad(
+                    datos = cantidadPorGenero.map { (genero, cantidad) -> genero to cantidad },
+                    modifier = Modifier.height(200.dp),
+                    onBarClick = { genero ->
+                        filtroGenero = genero
                     }
-                }
-                navController.navigate("inscripciones/${fechaSeleccionada}/mes")
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
-        )
+
+            // Gráfico de distribución por experiencia (cantidad absoluta)
+            if (filtroGenero == null && filtroExperiencia == null && usuarios.isNotEmpty()) {
+                Text(
+                    text = "Distribución por Experiencia",
+                    color = GymDarkBlue,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BarChartExperienciaCantidad(
+                    datos = cantidadPorExperiencia.map { (experiencia, cantidad) -> experiencia to cantidad },
+                    modifier = Modifier.height(200.dp),
+                    onBarClick = { experiencia ->
+                        filtroExperiencia = experiencia
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Gráfico de series temporales
+            Text(
+                text = if (filtroTipo == FilterType.MONTH) "Inscripciones por Día" else "Inscripciones por Mes",
+                color = GymDarkBlue,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            BarChartCard(
+                data = datosGraficaTemporal,
+                barColor = GymMediumBlue,
+                modifier = Modifier.height(300.dp),
+                onBarClick = { etiqueta ->
+                    val fechaSeleccionada = when (filtroTipo) {
+                        FilterType.MONTH -> LocalDate.parse(
+                            "$filtroAño-$filtroMes-${
+                                etiqueta.padStart(
+                                    2,
+                                    '0'
+                                )
+                            }"
+                        )
+
+                        FilterType.YEAR -> {
+                            val mesNum = meses.indexOfFirst { it.startsWith(etiqueta.take(3)) } + 1
+                            LocalDate.of(filtroAño.toInt(), mesNum, 1)
+                        }
+                    }
+                    navController.navigate("inscripciones/${fechaSeleccionada}/mes")
+                }
+            )
+        }
     }
 }
 
