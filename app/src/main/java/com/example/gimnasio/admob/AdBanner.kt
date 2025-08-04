@@ -19,7 +19,7 @@ fun AdBanner(modifier: Modifier = Modifier) {
         factory = { context ->
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-3940256099942544/9214589741" // Tu ID real aquí
+                adUnitId = "ca-app-pub-1678389918256405/4872645547" // ID Real
                 loadAd(AdRequest.Builder().build())
             }
         },
