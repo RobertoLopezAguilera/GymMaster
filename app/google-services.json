@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316124608499:android:c833e0e23575ab72544486",
+        "android_client_info": {
+          "package_name": "com.robertolopezaguilera.gimnasio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316124608499-3lfiv00aul5fur5qkoeqjgchdc6ug2qh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.robertolopezaguilera.gimnasio",
+            "certificate_hash": "04f2454fd13982e88474a429b6445431e7bcabb0"
+          }
+        },
+        {
+          "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcByPOrjGoqCGGzUkn5ur5puBSXXVzgRg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
