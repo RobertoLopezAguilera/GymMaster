@@ -37,7 +37,6 @@ import com.robertolopezaguilera.gimnasio.MainScreenActivity
 import com.robertolopezaguilera.gimnasio.data.AppDatabase
 import com.robertolopezaguilera.gimnasio.data.db.FirestoreSyncService
 import com.robertolopezaguilera.gimnasio.ui.theme.*
-//import com.example.gimnasio.worker.AutoBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,13 +54,16 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.robertolopezaguilera.gimnasio.worker.FirestoreSyncWorker
 import com.robertolopezaguilera.gimnasio.R
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 
 class LoginActivity : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
-
     private lateinit var firebaseAuth: FirebaseAuth
     private val RC_SIGN_IN = 100
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+
+    // Variable para controlar si ya se verificó la autenticación
+    private var authChecked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,9 +71,10 @@ class LoginActivity : ComponentActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
 
-        // Verificar sesión existente
+        // Verificar sesión existente inmediatamente
         firebaseAuth.currentUser?.let { user ->
             handleUserLoggedIn(user, sharedPreferences)
+            authChecked = true
             return
         }
 
@@ -85,7 +88,10 @@ class LoginActivity : ComponentActivity() {
         setContent {
             val viewModel: LoginViewModel = viewModel()
             LoginScreen(
-                onGoogleSignInClick = { startActivityForResult(googleSignInClient.signInIntent, RC_SIGN_IN) },
+                onGoogleSignInClick = {
+                    val signInIntent = googleSignInClient.signInIntent
+                    startActivityForResult(signInIntent, RC_SIGN_IN)
+                },
                 onLoginSuccess = { email ->
                     sharedPreferences.edit().putString("USER_EMAIL", email).apply()
                 },
@@ -94,7 +100,22 @@ class LoginActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Solo verificar autenticación si no se ha hecho ya
+        if (!authChecked) {
+            firebaseAuth.currentUser?.let { user ->
+                val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+                handleUserLoggedIn(user, sharedPreferences)
+                authChecked = true
+            }
+        }
+    }
+
     private fun handleUserLoggedIn(user: FirebaseUser, sharedPreferences: SharedPreferences) {
+        // Marcar que ya verificamos la autenticación
+        authChecked = true
+
         sharedPreferences.edit().putString("USER_EMAIL", user.email).apply()
 
         val restoredKey = "USER_DATA_RESTORED_${user.uid}"
@@ -114,9 +135,8 @@ class LoginActivity : ComponentActivity() {
                         db.usuarioDao(),
                         db.membresiaDao(),
                         db.inscripcionDao(),
-                        applicationContext // o simplemente "this" si no estás dentro de una corrutina
+                        applicationContext
                     )
-
 
                     val hasData = withContext(Dispatchers.IO) {
                         syncService.checkUserDataExists(user.uid)
@@ -134,11 +154,9 @@ class LoginActivity : ComponentActivity() {
                         }
                     }
 
-                    // Marca que ya se restauraron datos para este usuario
                     sharedPreferences.edit().putBoolean(restoredKey, true).apply()
                 }
 
-                // 🔁 Programa la sincronización automática cada 3 horas
                 scheduleSyncWorker(applicationContext)
                 startActivity(Intent(this@LoginActivity, MainScreenActivity::class.java))
                 finish()
@@ -156,27 +174,37 @@ class LoginActivity : ComponentActivity() {
         }
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == RC_SIGN_IN) {
             try {
-                val account = GoogleSignIn.getSignedInAccountFromIntent(data!!).getResult(ApiException::class.java)
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                val account = task.getResult(ApiException::class.java)
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
 
                 firebaseAuth.signInWithCredential(credential)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            task.result?.user?.let { user ->
-                                handleUserLoggedIn(user, getSharedPreferences("UserSession", Context.MODE_PRIVATE))
-                            }
+                    .addOnCompleteListener(this) { authTask ->
+                        if (authTask.isSuccessful) {
+                            // El usuario se autenticó correctamente con Google
+                            // No necesitamos hacer nada aquí porque el AuthStateListener se encargará
                         } else {
-                            Toast.makeText(this, "Error al autenticar con Google", Toast.LENGTH_SHORT).show()
+                            val exception = authTask.exception
+                            val errorMessage = when (exception) {
+                                is FirebaseAuthInvalidCredentialsException -> "Credenciales de Google inválidas"
+                                is FirebaseAuthUserCollisionException -> "Ya existe una cuenta con este email"
+                                else -> "Error al autenticar con Google: ${exception?.message}"
+                            }
+                            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                         }
                     }
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            } catch (e: ApiException) {
+                val errorMessage = when (e.statusCode) {
+                    GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> "Inicio de sesión cancelado"
+                    GoogleSignInStatusCodes.SIGN_IN_FAILED -> "Error en inicio de sesión"
+                    else -> "Error de Google Sign-In: ${e.statusCode}"
+                }
+                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -189,11 +217,11 @@ class LoginActivity : ComponentActivity() {
 
 private fun scheduleSyncWorker(context: Context) {
     val syncRequest = PeriodicWorkRequestBuilder<FirestoreSyncWorker>(
-        4, TimeUnit.HOURS // cada 3 horas
+        4, TimeUnit.HOURS
     )
         .setConstraints(
             Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED) // solo si hay internet
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
         )
         .build()
@@ -229,8 +257,6 @@ fun LoginScreen(
             TermsAndConditionsDialog(
                 onAccept = {
                     showTermsDialog = false
-                    // Aquí puedes guardar que el usuario aceptó los términos
-                    // Por ejemplo en SharedPreferences
                     val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                     prefs.edit().putBoolean("TERMS_ACCEPTED", true).apply()
                 },
@@ -271,8 +297,8 @@ fun LoginScreen(
             OutlinedTextField(
                 value = viewModel.email,
                 onValueChange = viewModel::onEmailChange,
-                label = { Text("Correo electrónico o número", color = GymDarkBlue) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                label = { Text("Correo electrónico", color = GymDarkBlue) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = GymLightGray.copy(alpha = 0.2f),
                     unfocusedContainerColor = GymLightGray.copy(alpha = 0.2f),
@@ -467,17 +493,15 @@ class LoginViewModel : ViewModel() {
 
         when {
             input.isBlank() -> {
-                onError("Ingrese correo o teléfono")
+                onError("Ingrese correo electrónico")
                 _isLoading = false
+                return
             }
             android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches() -> {
                 handleEmailLogin(input, password, onSuccess, onError)
             }
-            android.util.Patterns.PHONE.matcher(input).matches() -> {
-                handlePhoneLogin(input, context as ComponentActivity, onSuccess, onError)
-            }
             else -> {
-                onError("Formato no válido")
+                onError("Formato de correo no válido")
                 _isLoading = false
             }
         }
@@ -488,44 +512,25 @@ class LoginViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 _isLoading = false
                 if (task.isSuccessful) {
-                    onSuccess(email)
+                    // Verificar si el email está verificado
+                    val user = auth.currentUser
+                    if (user != null && user.isEmailVerified) {
+                        onSuccess(email)
+                    } else {
+                        onError("Por favor verifica tu email antes de iniciar sesión")
+                        auth.signOut()
+                    }
                 } else {
-                    onError(task.exception?.message ?: "Error al iniciar sesión")
+                    val exception = task.exception
+                    val errorMessage = when (exception) {
+                        is FirebaseAuthInvalidUserException -> "Usuario no encontrado"
+                        is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas"
+                        is FirebaseAuthUserCollisionException -> "Usuario ya existe con diferentes credenciales"
+                        else -> exception?.message ?: "Error al iniciar sesión"
+                    }
+                    onError(errorMessage)
                 }
             }
-    }
-
-    private fun handlePhoneLogin(phone: String, activity: ComponentActivity, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(phone)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    auth.signInWithCredential(credential)
-                        .addOnCompleteListener { task ->
-                            _isLoading = false
-                            if (task.isSuccessful) {
-                                onSuccess(phone)
-                            } else {
-                                onError("Error al verificar número")
-                            }
-                        }
-                }
-
-                override fun onVerificationFailed(e: com.google.firebase.FirebaseException) {
-                    _isLoading = false
-                    onError("Error de verificación: ${e.message}")
-                }
-
-                override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                    // Implementar lógica para manejar el código SMS
-                    onError("Se envió código SMS. Implementa la verificación.")
-                }
-            })
-            .build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
     fun register(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
@@ -536,7 +541,13 @@ class LoginViewModel : ViewModel() {
         val password = _password
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            onError("Solo registro con correo válido")
+            onError("Ingrese un correo válido")
+            _isLoading = false
+            return
+        }
+
+        if (password.length < 6) {
+            onError("La contraseña debe tener al menos 6 caracteres")
             _isLoading = false
             return
         }
@@ -545,9 +556,49 @@ class LoginViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 _isLoading = false
                 if (task.isSuccessful) {
-                    onSuccess(email)
+                    // Enviar email de verificación
+                    val user = auth.currentUser
+                    user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
+                        if (verificationTask.isSuccessful) {
+                            onSuccess(email)
+                            Toast.makeText(context, "Email de verificación enviado", Toast.LENGTH_SHORT).show()
+                        } else {
+                            onError("Error al enviar email de verificación")
+                        }
+                    }
                 } else {
-                    onError(task.exception?.message ?: "Error al registrar")
+                    val exception = task.exception
+                    val errorMessage = when (exception) {
+                        is FirebaseAuthWeakPasswordException -> "Contraseña demasiado débil"
+                        is FirebaseAuthInvalidCredentialsException -> "Email inválido"
+                        is FirebaseAuthUserCollisionException -> "El usuario ya existe"
+                        else -> exception?.message ?: "Error al registrar"
+                    }
+                    onError(errorMessage)
+                }
+            }
+    }
+
+    // Método para reenviar email de verificación
+    fun resendVerificationEmail(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val user = auth.currentUser
+        user?.sendEmailVerification()?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                onSuccess()
+            } else {
+                onError(task.exception?.message ?: "Error al reenviar email")
+            }
+        }
+    }
+
+    // Método para resetear contraseña
+    fun resetPassword(email: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onSuccess()
+                } else {
+                    onError(task.exception?.message ?: "Error al enviar email de reset")
                 }
             }
     }

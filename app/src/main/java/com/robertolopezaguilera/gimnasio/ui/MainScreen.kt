@@ -4,9 +4,12 @@ import com.robertolopezaguilera.gimnasio.R
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,7 +34,7 @@ import com.robertolopezaguilera.gimnasio.ui.theme.*
 import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
-//https://play.google.com/apps/testing/com.robertolopezaguilera.gimnasio
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
@@ -63,9 +66,14 @@ fun MainScreen() {
         }
     }
 
+    // Función para cerrar el drawer
+    val closeDrawer: () -> Unit = {
+        scope.launch { drawerState.close() }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = false, //Deshabilita deslizamiento
+        gesturesEnabled = true, // Habilita gestos para cerrar deslizando
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier.width(280.dp),
@@ -78,7 +86,7 @@ fun MainScreen() {
                         .padding(8.dp),
                     contentAlignment = Alignment.TopEnd
                 ) {
-                    IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                    IconButton(onClick = closeDrawer) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_close),
                             contentDescription = "Cerrar Drawer",
@@ -112,14 +120,14 @@ fun MainScreen() {
                     }
                 }
 
-                //  ITEM: EstadisticasUsuario
+                // ITEM: EstadisticasUsuario
                 NavigationDrawerItem(
                     label = {
                         Text("Datos sobre Usuarios", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        closeDrawer()
                         navController.navigate("estadisticas_usuarios")
                     },
                     icon = {
@@ -134,14 +142,14 @@ fun MainScreen() {
                     )
                 )
 
-                //  ITEM: EstadisticasUsuario
+                // ITEM: EstadisticasInscripciones
                 NavigationDrawerItem(
                     label = {
                         Text("Datos sobre Inscripciones", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        closeDrawer()
                         navController.navigate("estadisticas_inscripciones")
                     },
                     icon = {
@@ -156,14 +164,14 @@ fun MainScreen() {
                     )
                 )
 
-                //  ITEM: Lista de inscripciones
+                // ITEM: Lista de inscripciones
                 NavigationDrawerItem(
                     label = {
                         Text("Lista de Inscripciones", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        closeDrawer()
                         navController.navigate("inscripciones_lista")
                     },
                     icon = {
@@ -178,14 +186,14 @@ fun MainScreen() {
                     )
                 )
 
-                //  ITEM: Ajustes
+                // ITEM: Ajustes
                 NavigationDrawerItem(
                     label = {
                         Text("Ajustes", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        closeDrawer()
                         navController.navigate("perfil")
                     },
                     icon = {
@@ -200,16 +208,16 @@ fun MainScreen() {
                     )
                 )
 
-                //  ITEM: Cerrar sesión
+                // ITEM: Cerrar sesión
                 NavigationDrawerItem(
                     label = {
                         Text("Cerrar sesión", style = MaterialTheme.typography.bodyLarge.copy(color = GymWhite))
                     },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        closeDrawer()
                         FirebaseAuth.getInstance().signOut()
-                        LoginManager.getInstance().logOut() // <-- Cierre de sesión de Facebook
+                        LoginManager.getInstance().logOut()
 
                         val sharedPreferences = context.getSharedPreferences("UserSession", Context.MODE_PRIVATE)
                         sharedPreferences.edit().remove("USER_EMAIL").apply()
@@ -232,6 +240,18 @@ fun MainScreen() {
             }
         }
     ) {
+        // Overlay para cerrar al hacer clic fuera del drawer
+        if (drawerState.isOpen) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                        closeDrawer()
+                    }
+            )
+        }
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -302,7 +322,6 @@ fun MainScreen() {
                     }
                 }
             },
-
             floatingActionButton = {
                 when (currentRoute) {
                     BottomNavItem.Usuarios.route -> {

@@ -15,8 +15,8 @@ android {
         applicationId = "com.robertolopezaguilera.gimnasio"
         minSdk = 28
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.2"
+        versionCode = 3
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -83,9 +83,11 @@ dependencies {
     //FireBase
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth:19.3.0")
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
     implementation("com.google.firebase:firebase-firestore")
+
+    implementation ("com.google.firebase:firebase-auth:24.0.1")
+    implementation ("com.google.firebase:firebase-firestore:26.0.0")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
 
     //Facebook
     //implementation ("com.facebook.android:facebook-android-sdk:[4,5)")

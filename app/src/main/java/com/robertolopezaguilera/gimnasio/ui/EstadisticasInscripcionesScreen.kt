@@ -49,6 +49,11 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import com.robertolopezaguilera.gimnasio.R
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 @Composable
 fun EstadisticasInscripcionesScreen(
@@ -168,6 +173,7 @@ fun EstadisticasInscripcionesScreen(
             map.toList().sortedByDescending { it.second }
         }
     }
+
     Scaffold(
         bottomBar = {
             // Banner como bottom bar
@@ -185,18 +191,13 @@ fun EstadisticasInscripcionesScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .background(GymLightGray)
                 .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(GymLightGray)
-            ) {
+            item {
                 // Título con botón de retroceso
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -293,8 +294,10 @@ fun EstadisticasInscripcionesScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Gráfico de ingresos mensuales
+            // Gráfico de ingresos mensuales
+            item {
                 Text(
                     text = "Ingresos por mes",
                     style = MaterialTheme.typography.titleSmall.copy(
@@ -304,17 +307,20 @@ fun EstadisticasInscripcionesScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-
                 BarChartCard(
                     data = ingresosPorMes,
                     barColor = GymGreen,
-                    modifier = Modifier.height(300.dp),
+                    modifier = Modifier
+                        .height(300.dp)
+                        .fillMaxWidth(),
                     showValuesAsPercent = false
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Gráfico de cantidad de inscripciones por mes
+            // Gráfico de cantidad de inscripciones por mes
+            item {
                 Text(
                     text = "Inscripciones por mes",
                     style = MaterialTheme.typography.titleSmall.copy(
@@ -327,12 +333,16 @@ fun EstadisticasInscripcionesScreen(
                 BarChartCard(
                     data = totalInscripcionesPorMes,
                     barColor = GymMediumBlue,
-                    modifier = Modifier.height(300.dp)
+                    modifier = Modifier
+                        .height(300.dp)
+                        .fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Gráfico de distribución de membresías
+            // Gráfico de distribución de membresías
+            item {
                 Text(
                     text = "Distribución de membresías",
                     style = MaterialTheme.typography.titleSmall.copy(
@@ -344,12 +354,16 @@ fun EstadisticasInscripcionesScreen(
 
                 BarChartMembresias(
                     datos = distribucionMembresias,
-                    modifier = Modifier.height(250.dp)
+                    modifier = Modifier
+                        .height(250.dp)
+                        .fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Gráfico de ingresos por tipo de membresía
+            // Gráfico de ingresos por tipo de membresía
+            item {
                 Text(
                     text = "Ingresos por tipo de membresía",
                     style = MaterialTheme.typography.titleSmall.copy(
@@ -361,7 +375,9 @@ fun EstadisticasInscripcionesScreen(
 
                 BarChartIngresosMembresias(
                     datos = ingresosPorMembresia.map { (tipo, monto) -> tipo to monto.toFloat() },
-                    modifier = Modifier.height(250.dp)
+                    modifier = Modifier
+                        .height(250.dp)
+                        .fillMaxWidth()
                 )
             }
         }
@@ -452,7 +468,7 @@ fun BarChartIngresosMembresias(
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = GymWhite),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         AndroidView(
             factory = { barChart },
@@ -542,7 +558,7 @@ fun BarChartMembresias(
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = GymWhite),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         AndroidView(
             factory = { barChart },
@@ -553,13 +569,15 @@ fun BarChartMembresias(
     }
 }
 
-// Versión simplificada del gráfico de estados
+// Versión mejorada de BarChartCard para prevenir clicks accidentales
 @Composable
-fun BarChartEstadoCantidad(
-    datos: List<Pair<String, Float>>,
-    modifier: Modifier = Modifier
+fun BarChartCard(
+    data: List<Pair<String, Float>>,
+    barColor: Color,
+    modifier: Modifier = Modifier,
+    showValuesAsPercent: Boolean = false
 ) {
-    if (datos.isEmpty()) {
+    if (data.isEmpty()) {
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -575,23 +593,24 @@ fun BarChartEstadoCantidad(
     val context = LocalContext.current
     val barChart = remember { BarChart(context) }
 
-    LaunchedEffect(datos) {
-        val entries = datos.mapIndexed { index, (_, cantidad) ->
-            BarEntry(index.toFloat(), cantidad)
+    LaunchedEffect(data) {
+        val entries = data.mapIndexed { index, (_, value) ->
+            BarEntry(index.toFloat(), value)
         }
 
         val dataSet = BarDataSet(entries, "").apply {
-            colors = datos.map { (estado, _) ->
-                when (estado) {
-                    "ACTIVO" -> GymGreen.toArgb()
-                    else -> GymBrightRed.toArgb()
-                }
-            }
+            color = barColor.toArgb()
             valueTextColor = Color.Black.toArgb()
             valueTextSize = 12f
             setDrawValues(true)
             valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String = value.toInt().toString()
+                override fun getFormattedValue(value: Float): String {
+                    return if (showValuesAsPercent) {
+                        "${"%.1f".format(value)}%"
+                    } else {
+                        if (value % 1 == 0f) value.toInt().toString() else "%.2f".format(value)
+                    }
+                }
             }
         }
 
@@ -601,8 +620,8 @@ fun BarChartEstadoCantidad(
             }
 
             xAxis.apply {
-                valueFormatter = IndexAxisValueFormatter(datos.map { it.first })
-                labelRotationAngle = if (datos.size > 3) -45f else 0f
+                valueFormatter = IndexAxisValueFormatter(data.map { it.first })
+                labelRotationAngle = if (data.size > 3) -45f else 0f
                 textSize = 12f
                 granularity = 1f
                 position = XAxis.XAxisPosition.BOTTOM
@@ -611,13 +630,15 @@ fun BarChartEstadoCantidad(
 
             axisLeft.apply {
                 axisMinimum = 0f
-                granularity = 1f
+                granularity = if (data.maxOfOrNull { it.second } ?: 0f > 10) 10f else 1f
                 setDrawGridLines(true)
             }
 
             axisRight.isEnabled = false
             legend.isEnabled = false
             description.isEnabled = false
+            setTouchEnabled(false) // IMPORTANTE: Deshabilita interacción táctil
+            isClickable = false
             notifyDataSetChanged()
             invalidate()
         }
@@ -626,13 +647,18 @@ fun BarChartEstadoCantidad(
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = GymWhite),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         AndroidView(
             factory = { barChart },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {} // No hacer nada al hacer click
+                )
         )
     }
 }

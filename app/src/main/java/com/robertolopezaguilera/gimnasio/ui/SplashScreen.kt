@@ -12,8 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.robertolopezaguilera.gimnasio.R
 import kotlinx.coroutines.delay
@@ -29,6 +32,7 @@ fun VideoSplashScreen(onFinish: () -> Unit) {
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(Uri.parse(videoUri)))
+            repeatMode = Player.REPEAT_MODE_OFF
             prepare()
             playWhenReady = true
         }
@@ -37,27 +41,52 @@ fun VideoSplashScreen(onFinish: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(GymDarkBlue) // Color de Compose
+            .background(GymDarkBlue)
     ) {
         AndroidView(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center),
             factory = {
                 PlayerView(it).apply {
                     player = exoPlayer
                     useController = false
+
+                    // Configuración avanzada para el ajuste de video
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL // Llena toda la pantalla
+
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
+
+                    // Asegurar que el video ocupe toda la pantalla
+                    setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL)
                 }
             }
         )
     }
 
     LaunchedEffect(Unit) {
-        delay(3000)
+        // Esperar a que el video comience a reproducirse
+        delay(300)
+
+        // Usar la duración real del video o un valor por defecto
+        val duration = if (exoPlayer.duration != C.TIME_UNSET && exoPlayer.duration > 0) {
+            exoPlayer.duration + 500 // Pequeño margen adicional
+        } else {
+            3000L // Duración por defecto de 3 segundos
+        }
+
+        // Esperar la duración del video
+        delay(duration)
+
+        // Verificar si el video todavía se está reproduciendo
+        if (exoPlayer.isPlaying) {
+            exoPlayer.stop()
+        }
+
         exoPlayer.release()
         onFinish()
     }
 }
-
