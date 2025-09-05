@@ -186,8 +186,12 @@ class LoginActivity : ComponentActivity() {
                 firebaseAuth.signInWithCredential(credential)
                     .addOnCompleteListener(this) { authTask ->
                         if (authTask.isSuccessful) {
-                            // El usuario se autenticó correctamente con Google
-                            // No necesitamos hacer nada aquí porque el AuthStateListener se encargará
+                            // Usuario autenticado correctamente con Google
+                            val user = authTask.result?.user
+                            if (user != null) {
+                                val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+                                handleUserLoggedIn(user, sharedPreferences)
+                            }
                         } else {
                             val exception = authTask.exception
                             val errorMessage = when (exception) {
@@ -202,6 +206,7 @@ class LoginActivity : ComponentActivity() {
                 val errorMessage = when (e.statusCode) {
                     GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> "Inicio de sesión cancelado"
                     GoogleSignInStatusCodes.SIGN_IN_FAILED -> "Error en inicio de sesión"
+                    GoogleSignInStatusCodes.SIGN_IN_CURRENTLY_IN_PROGRESS -> "Inicio de sesión en progreso"
                     else -> "Error de Google Sign-In: ${e.statusCode}"
                 }
                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
@@ -512,13 +517,12 @@ class LoginViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 _isLoading = false
                 if (task.isSuccessful) {
-                    // Verificar si el email está verificado
+                    // REMOVIDA LA VERIFICACIÓN DE EMAIL - Permitir login sin verificación
                     val user = auth.currentUser
-                    if (user != null && user.isEmailVerified) {
+                    if (user != null) {
                         onSuccess(email)
                     } else {
-                        onError("Por favor verifica tu email antes de iniciar sesión")
-                        auth.signOut()
+                        onError("Error al obtener información del usuario")
                     }
                 } else {
                     val exception = task.exception
@@ -556,15 +560,13 @@ class LoginViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 _isLoading = false
                 if (task.isSuccessful) {
-                    // Enviar email de verificación
+                    // REMOVIDO EL ENVÍO DE EMAIL DE VERIFICACIÓN
                     val user = auth.currentUser
-                    user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
-                        if (verificationTask.isSuccessful) {
-                            onSuccess(email)
-                            Toast.makeText(context, "Email de verificación enviado", Toast.LENGTH_SHORT).show()
-                        } else {
-                            onError("Error al enviar email de verificación")
-                        }
+                    if (user != null) {
+                        onSuccess(email)
+                        Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                    } else {
+                        onError("Error al crear usuario")
                     }
                 } else {
                     val exception = task.exception
@@ -577,18 +579,6 @@ class LoginViewModel : ViewModel() {
                     onError(errorMessage)
                 }
             }
-    }
-
-    // Método para reenviar email de verificación
-    fun resendVerificationEmail(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val user = auth.currentUser
-        user?.sendEmailVerification()?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                onSuccess()
-            } else {
-                onError(task.exception?.message ?: "Error al reenviar email")
-            }
-        }
     }
 
     // Método para resetear contraseña

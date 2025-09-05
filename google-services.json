@@ -7,43 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:316124608499:android:c57dd70356f8f140544486",
-        "android_client_info": {
-          "package_name": "com.example.gimnasio"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "316124608499-gk3q1objlokng5k34q4r147ljii2109p.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.gimnasio",
-            "certificate_hash": "04f2454fd13982e88474a429b6445431e7bcabb0"
-          }
-        },
-        {
-          "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDcByPOrjGoqCGGzUkn5ur5puBSXXVzgRg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "316124608499-lvg33lv48qkd1ngpouh5p7aaeg7e24jh.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:316124608499:android:c833e0e23575ab72544486",
         "android_client_info": {
           "package_name": "com.robertolopezaguilera.gimnasio"
@@ -56,6 +19,22 @@
           "android_info": {
             "package_name": "com.robertolopezaguilera.gimnasio",
             "certificate_hash": "04f2454fd13982e88474a429b6445431e7bcabb0"
+          }
+        },
+        {
+          "client_id": "316124608499-lknbehj6os5tqrccokvltvh3faihcjqq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.robertolopezaguilera.gimnasio",
+            "certificate_hash": "eeb9969528b35fd2df1de6e217f2e507b7c20c0f"
+          }
+        },
+        {
+          "client_id": "316124608499-u2vj7dlcg3rhamfdb8mkdl7kvhbh6tvv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.robertolopezaguilera.gimnasio",
+            "certificate_hash": "24f42576cb274882e7783b67eb8a836fce02c581"
           }
         },
         {
